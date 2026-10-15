@@ -3,201 +3,344 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Word Road 3D: Arcade Edition</title>
+  <title>Word Road 3D: Pure Arcade Racing</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Chakra+Petch:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;700;800;900&family=Chakra+Petch:wght@700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
-    html, body { width: 100vw; height: 100vh; overflow: hidden; background: #7dd3fc; position: fixed; inset: 0; font-family: 'Kanit', sans-serif; }
+    html, body { width: 100vw; height: 100vh; overflow: hidden; background: #38bdf8; position: fixed; inset: 0; font-family: 'Kanit', sans-serif; }
     #three-container { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; }
 
-    /* Top HUD */
-    #top-hud {
+    /* MISSION HUD ด้านบน */
+    #mission-hud {
       position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(14px);
-      border: 2px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 8px 24px;
-      display: flex; align-items: center; justify-content: center; gap: 16px; color: #fff; z-index: 45;
+      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px);
+      border: 3px solid #38bdf8; border-radius: 24px; padding: 10px 24px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; color: #fff; z-index: 45; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      min-width: 320px; text-align: center;
     }
-    .hud-pill {
-      background: linear-gradient(135deg, #f59e0b, #d97706); padding: 4px 14px;
-      border-radius: 999px; font-weight: 800; font-family: 'Chakra Petch'; font-size: 0.95rem;
+    .mission-title { font-size: 0.82rem; font-weight: 800; color: #facc15; letter-spacing: 0.5px; }
+    .mission-desc { font-size: 1.15rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+
+    /* SCORE & COIN HUD */
+    #stat-hud {
+      position: fixed; top: 16px; right: 16px;
+      display: flex; gap: 10px; z-index: 50;
+    }
+    .hud-chip {
+      background: rgba(15, 23, 42, 0.88); border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 18px; padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+      font-family: 'Chakra Petch'; font-size: 1.15rem; font-weight: 900; color: #fff;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
     }
 
+    /* SPEEDOMETER & NITRO */
+    #speedo-box {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; z-index: 50; pointer-events: none;
+    }
+    .speed-number {
+      font-family: 'Chakra Petch'; font-size: 3rem; font-weight: 900;
+      color: #facc15; text-shadow: 0 0 12px rgba(250, 204, 21, 0.5); line-height: 1;
+    }
+    .speed-unit { font-size: 0.85rem; font-weight: 800; color: #94a3b8; }
+    .nitro-alert {
+      background: #ef4444; color: #fff; font-family: 'Chakra Petch'; font-weight: 900;
+      font-size: 0.95rem; padding: 4px 14px; border-radius: 999px; margin-top: 4px;
+      animation: pulse 0.4s infinite alternate; display: none;
+    }
+    @keyframes pulse { from { opacity: 0.6; transform: scale(0.95); } to { opacity: 1; transform: scale(1.05); } }
+
+    /* TOUCH CONTROLS */
     #mobile-controls {
       position: fixed; bottom: 25px; left: 0; right: 0;
-      display: flex; justify-content: space-between; padding: 0 35px; pointer-events: none; z-index: 60;
+      display: flex; justify-content: space-between; padding: 0 28px;
+      pointer-events: none; z-index: 60;
     }
-    .pad-cluster { pointer-events: auto; display: flex; gap: 14px; align-items: center; }
+    .pad-cluster { pointer-events: auto; display: flex; gap: 12px; }
     .v-btn {
-      width: 74px; height: 74px; border-radius: 22px; background: rgba(15, 23, 42, 0.8);
-      border: 2px solid rgba(255, 255, 255, 0.35); display: flex; justify-content: center; align-items: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5); cursor: pointer;
+      width: 76px; height: 76px; border-radius: 24px; background: rgba(15, 23, 42, 0.82);
+      border: 3px solid rgba(255, 255, 255, 0.3); display: flex; justify-content: center;
+      align-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
-    .v-btn:active { transform: scale(0.92); background: rgba(250, 204, 21, 0.35); }
-    .v-btn svg { width: 34px; height: 34px; fill: #ffffff; }
+    .v-btn:active { transform: scale(0.9); background: rgba(56, 189, 248, 0.4); border-color: #38bdf8; }
+    .v-btn svg { width: 36px; height: 36px; fill: #ffffff; }
 
-    /* Modal */
-    #checkpoint-modal {
-      position: fixed; inset: 0; background: rgba(10, 12, 16, 0.88); backdrop-filter: blur(10px);
-      display: none; justify-content: center; align-items: center; padding: 16px; z-index: 120;
+    /* FLOATING NOTIFICATION */
+    #action-toast {
+      position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+      font-family: 'Chakra Petch'; font-size: 2.2rem; font-weight: 900;
+      color: #4ade80; text-shadow: 0 0 20px #22c55e, 0 4px 0 #000;
+      pointer-events: none; z-index: 100; opacity: 0; transition: all 0.25s;
     }
-    .cp-box {
-      background: #ffffff; border: 4px solid #38bdf8; border-radius: 26px; padding: 24px;
-      max-width: 540px; width: 100%; color: #1e293b; text-align: left;
-    }
-    .cp-btn-choice {
-      width: 100%; padding: 12px 18px; border-radius: 14px; border: 2px solid #cbd5e1;
-      background: #f8fafc; font-family: 'Kanit'; font-weight: 700; font-size: 1rem;
-      cursor: pointer; margin-bottom: 8px; text-align: left; transition: 0.1s;
-    }
-    .cp-btn-choice:hover { background: #e0f2fe; border-color: #0284c7; }
   </style>
 </head>
 <body>
 
   <div id="three-container"></div>
 
-  <div id="top-hud">
-    <div style="font-weight:900; color:#38bdf8;" id="hud-car-name">CAR: TAXI</div>
-    <div class="hud-pill" id="hud-score">ด่าน 1 / 12</div>
-    <div class="hud-pill" style="background:linear-gradient(135deg, #10b981, #059669);" id="hud-coins">🪙 0</div>
+  <!-- MISSION HUD -->
+  <div id="mission-hud">
+    <div class="mission-title" id="m-stage">🎯 ภารกิจที่ 1 / 10</div>
+    <div class="mission-desc" id="m-text">ซิ่งพุ่งชน: ไอคอนบันทึกงาน (SAVE)</div>
   </div>
 
+  <!-- STATS -->
+  <div id="stat-hud">
+    <div class="hud-chip" style="border-color:#f59e0b; color:#fde047;">
+      <span>🪙</span>
+      <span id="stat-coins">0</span>
+    </div>
+    <div class="hud-chip" style="border-color:#10b981; color:#6ee7b7;">
+      <span>PTS</span>
+      <span id="stat-pts">0</span>
+    </div>
+  </div>
+
+  <!-- SPEEDO -->
+  <div id="speedo-box">
+    <div class="speed-number" id="speed-val">0</div>
+    <div class="speed-unit">KM/H</div>
+    <div class="nitro-alert" id="nitro-tag">⚡ NITRO BOOST ⚡</div>
+  </div>
+
+  <div id="action-toast">PERFECT HIT! +100 PTS</div>
+
+  <!-- TOUCH BUTTONS -->
   <div id="mobile-controls">
     <div class="pad-cluster">
-      <div class="v-btn" id="btn-left"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></div>
-      <div class="v-btn" id="btn-right"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      <div class="v-btn" id="btn-left">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      </div>
+      <div class="v-btn" id="btn-right">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </div>
     </div>
     <div class="pad-cluster">
-      <div class="v-btn" id="btn-down" style="border-color:#ef4444;"><svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg></div>
-      <div class="v-btn" id="btn-up" style="border-color:#10b981; width:82px; height:82px;"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
-    </div>
-  </div>
-
-  <div id="checkpoint-modal">
-    <div class="cp-box">
-      <div style="font-family:'Chakra Petch'; font-size:1.2rem; font-weight:900; color:#0284c7; margin-bottom:12px;" id="cp-stage-title">CHECKPOINT</div>
-      <div style="font-size:1.15rem; font-weight:800; margin-bottom:16px;" id="cp-question">โจทย์ข้อสอบ...</div>
-      <div id="cp-options-list"></div>
+      <div class="v-btn" id="btn-down" style="border-color:#ef4444; background:rgba(239, 68, 68, 0.25);">
+        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+      </div>
+      <div class="v-btn" id="btn-up" style="border-color:#10b981; background:rgba(16, 185, 129, 0.35); width:82px; height:82px;">
+        <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+      </div>
     </div>
   </div>
 
   <script>
     let scene, camera, renderer, carGroup;
-    let checkpoints = [], obstacles = [], coins3D = [];
-    let currentStage = 0, sessionCoins = 0, isModalOpen = false;
+    let coins = [], targetSigns = [], obstacles = [];
+    let score = 0, coinCount = 0, currentMissionIdx = 0;
     let keys = { up: false, down: false, left: false, right: false };
 
-    // สกินรถที่เลือกมาจากหน้าแรก
-    let activeSkin = { name: "Taxi Yellow", color: 0xfacc15 };
-    try {
-      const savedSkin = localStorage.getItem("word_road_active_skin");
-      if (savedSkin) activeSkin = JSON.parse(savedSkin);
-    } catch(e){}
+    let carPhysics = {
+      x: 0, z: 0, angle: 0,
+      speed: 0, baseMaxSpeed: 1.6, currentMaxSpeed: 1.6,
+      accel: 0.045, friction: 0.016, turnSpeed: 0.042,
+      boostTimer: 0
+    };
 
-    document.getElementById("hud-car-name").innerText = `CAR: ${activeSkin.name.toUpperCase()}`;
-
-    let carPhysics = { x: 0, z: 0, angle: 0, speed: 0, maxSpeed: 1.4, accel: 0.035, friction: 0.018, turnSpeed: 0.04 };
-
-    const waypoints = [
-      { z: -150, q: "แท็บเมนูใดใน Word รวมคำสั่งปรับขนาดฟอนต์ และจัดย่อหน้า?", target: "Home (หน้าแรก)", opts: ["Home (หน้าแรก)", "Insert", "Layout", "View"] },
-      { z: -350, q: "ต้องการบันทึกงานทับไฟล์เดิมทันที กดคีย์ลัดใด?", target: "Ctrl + S", opts: ["Ctrl + S", "Ctrl + P", "Ctrl + O", "Ctrl + N"] },
-      { z: -550, q: "กู้คืนข้อความที่เผลอลบหายไป (Undo) กดปุ่มใด?", target: "Ctrl + Z", opts: ["Ctrl + Z", "Ctrl + Y", "Ctrl + C", "Ctrl + V"] },
-      { z: -750, q: "คีย์ลัดสำหรับทำตัวอักษรหนา (Bold) คือปุ่มใด?", target: "Ctrl + B", opts: ["Ctrl + B", "Ctrl + I", "Ctrl + U", "Ctrl + D"] },
-      { z: -950, q: "จัดข้อความให้อยู่ตรงกึ่งกลางหน้ากระดาษ กดปุ่มใด?", target: "Ctrl + E", opts: ["Ctrl + E", "Ctrl + L", "Ctrl + R", "Ctrl + J"] },
-      { z: -1150, q: "สร้างรายการแบบจุดกลมโดยไม่มีลำดับเลข ใช้เครื่องมือใด?", target: "Bullets", opts: ["Bullets", "Numbering", "Multilevel", "Sort"] },
-      { z: -1350, q: "Wrap Text แบบใดส่งภาพไปอยู่ข้างหลังข้อความ?", target: "Behind Text", opts: ["Behind Text", "Square", "In Front of Text", "Tight"] },
-      { z: -1550, q: "คำสั่งรวมช่องตารางหลายช่องเป็นช่องเดียว คือคำสั่งใด?", target: "Merge Cells", opts: ["Merge Cells", "Split Cells", "Delete", "Insert"] },
-      { z: -1750, q: "ตั้งกระดาษแนวนอน ต้องเลือกแบบใดในเมนู Orientation?", target: "Landscape", opts: ["Landscape", "Portrait", "Margins", "Size"] },
-      { z: -1950, q: "เส้นหยักสีแดงใต้ข้อความ เตือนข้อผิดพลาดเรื่องใด?", target: "สะกดคำผิด", opts: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์ไม่รองรับ", "ลืมเซฟ"] },
-      { z: -2150, q: "การทำสารบัญอัตโนมัติ ต้องตั้งสไตล์หัวข้อเป็นอะไร?", target: "Heading 1", opts: ["Heading 1", "Normal", "Title", "Quote"] },
-      { z: -2350, q: "ส่งออกไฟล์ชนิดใดที่ล็อกการจัดหน้ากระดาษไม่ให้เคลื่อน?", target: ".pdf", opts: [".pdf", ".docx", ".txt", ".xlsx"] }
+    // ภารกิจซิ่งเก็บป้ายไอคอนบนถนน (ไม่มี Popup มาคั่น)
+    const missionList = [
+      {
+        zPos: -300,
+        prompt: "ซิ่งพุ่งชน: ป้ายบันทึกเอกสาร [Ctrl + S]",
+        targetType: "save",
+        cards: [
+          { type: "save", text: "Ctrl + S", color: 0x10b981, lane: -8 },
+          { type: "copy", text: "Ctrl + C", color: 0xef4444, lane: 0 },
+          { type: "cut", text: "Ctrl + X", color: 0xef4444, lane: 8 }
+        ]
+      },
+      {
+        zPos: -700,
+        prompt: "ซิ่งพุ่งชน: เครื่องมือทำตัวอักษรหนา [Bold]",
+        targetType: "bold",
+        cards: [
+          { type: "italic", text: "Italic (I)", color: 0xef4444, lane: -8 },
+          { type: "bold", text: "Bold (B)", color: 0x10b981, lane: 0 },
+          { type: "underline", text: "Underline", color: 0xef4444, lane: 8 }
+        ]
+      },
+      {
+        zPos: -1100,
+        prompt: "ซิ่งพุ่งชน: คีย์ลัดย้อนกลับคำสั่ง [Undo]",
+        targetType: "undo",
+        cards: [
+          { type: "redo", text: "Ctrl + Y", color: 0xef4444, lane: -8 },
+          { type: "paste", text: "Ctrl + V", color: 0xef4444, lane: 0 },
+          { type: "undo", text: "Ctrl + Z", color: 0x10b981, lane: 8 }
+        ]
+      },
+      {
+        zPos: -1500,
+        prompt: "ซิ่งพุ่งชน: จัดข้อความกึ่งกลางหน้ากระดาษ",
+        targetType: "center",
+        cards: [
+          { type: "center", text: "Ctrl + E (Center)", color: 0x10b981, lane: -8 },
+          { type: "left", text: "Ctrl + L (Left)", color: 0xef4444, lane: 0 },
+          { type: "right", text: "Ctrl + R (Right)", color: 0xef4444, lane: 8 }
+        ]
+      },
+      {
+        zPos: -1900,
+        prompt: "ซิ่งพุ่งชน: สกุลไฟล์ล็อกหน้ากระดาษไม่ให้เคลื่อน",
+        targetType: "pdf",
+        cards: [
+          { type: "docx", text: ".DOCX", color: 0xef4444, lane: -8 },
+          { type: "pdf", text: ".PDF", color: 0x10b981, lane: 0 },
+          { type: "txt", text: ".TXT", color: 0xef4444, lane: 8 }
+        ]
+      }
     ];
 
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x7dd3fc);
-      scene.fog = new THREE.Fog(0x7dd3fc, 80, 500);
+      scene.background = new THREE.Color(0x38bdf8);
+      scene.fog = new THREE.Fog(0x38bdf8, 90, 600);
 
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       document.getElementById("three-container").appendChild(renderer.domElement);
 
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x334155, 0.95);
       scene.add(hemi);
-      const dir = new THREE.DirectionalLight(0xfff7ed, 0.8);
-      dir.position.set(60, 100, 60);
-      scene.add(dir);
+      const sun = new THREE.DirectionalLight(0xfffbeb, 0.85);
+      sun.position.set(50, 100, 50);
+      scene.add(sun);
 
-      buildRoad();
+      buildTrack();
       buildCar();
-      buildGates();
-      buildCoinsAndObstacles();
-      setupControls();
+      buildItems();
+      setupInput();
+      updateMissionHUD();
       animate();
     }
 
-    function buildRoad() {
-      const roadGeo = new THREE.PlaneGeometry(32, 2800);
+    function buildTrack() {
+      // พื้นหญ้า
+      const grassGeo = new THREE.PlaneGeometry(600, 3200);
+      const grassMat = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+      const grass = new THREE.Mesh(grassGeo, grassMat);
+      grass.rotation.x = -Math.PI / 2;
+      grass.position.z = -1200;
+      scene.add(grass);
+
+      // ถนน 3 เลนกว้างพิเศษ
+      const roadGeo = new THREE.PlaneGeometry(36, 3000);
       const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
       const road = new THREE.Mesh(roadGeo, roadMat);
       road.rotation.x = -Math.PI / 2;
-      road.position.z = -1200;
+      road.position.set(0, 0.05, -1200);
       scene.add(road);
+
+      // เส้นแบ่งเลน
+      for (let z = 50; z > -2600; z -= 14) {
+        const lineGeo = new THREE.PlaneGeometry(0.5, 6);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        
+        const l1 = new THREE.Mesh(lineGeo, lineMat);
+        l1.rotation.x = -Math.PI / 2;
+        l1.position.set(-6, 0.08, z);
+        scene.add(l1);
+
+        const l2 = l1.clone();
+        l2.position.x = 6;
+        scene.add(l2);
+      }
     }
 
     function buildCar() {
       carGroup = new THREE.Group();
-      // ตัวถังรถดึงสีจาก activeSkin
-      const bodyGeo = new THREE.BoxGeometry(3.6, 1.3, 7.0);
-      const bodyMat = new THREE.MeshLambertMaterial({ color: activeSkin.color });
+
+      // สกินรถ Supercar
+      const bodyGeo = new THREE.BoxGeometry(3.6, 1.25, 7.2);
+      const bodyMat = new THREE.MeshLambertMaterial({ color: 0xef4444 }); // สีแดงสปอร์ต
       const body = new THREE.Mesh(bodyGeo, bodyMat);
-      body.position.y = 1.0;
+      body.position.y = 0.95;
       carGroup.add(body);
 
-      const cabinGeo = new THREE.BoxGeometry(3.0, 1.1, 3.6);
-      const cabinMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-      const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-      cabin.position.set(0, 1.9, -0.3);
-      carGroup.add(cabin);
+      const roofGeo = new THREE.BoxGeometry(2.9, 1.0, 3.6);
+      const roofMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.set(0, 1.9, -0.4);
+      carGroup.add(roof);
+
+      // สปอยเลอร์หลัง
+      const spoilerBar = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 0.8), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      spoilerBar.position.set(0, 2.1, 3.1);
+      carGroup.add(spoilerBar);
 
       scene.add(carGroup);
     }
 
-    function buildGates() {
-      waypoints.forEach((wp, idx) => {
-        const gate = new THREE.Group();
-        gate.position.set(0, 0, wp.z);
+    function createSignBoard(text, bgColor) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256; canvas.height = 128;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = bgColor;
+      ctx.roundRect(0, 0, 256, 128, 20);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 8;
+      ctx.stroke();
 
-        const laserGeo = new THREE.PlaneGeometry(32, 14);
-        const laserMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
-        const laser = new THREE.Mesh(laserGeo, laserMat);
-        laser.position.set(0, 7, 0);
-        gate.add(laser);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 32px Kanit, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 128, 64);
 
-        scene.add(gate);
-        checkpoints.push({ laser: laser, z: wp.z, passed: false, qData: wp });
-      });
+      const texture = new THREE.CanvasTexture(canvas);
+      const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const geo = new THREE.PlaneGeometry(6.5, 3.5);
+      return new THREE.Mesh(geo, mat);
     }
 
-    function buildCoinsAndObstacles() {
-      // สร้างเหรียญทอง 3D บนถนนให้ขับชนเก็บได้
-      for (let z = -50; z > -2500; z -= 35) {
-        const laneX = (Math.random() - 0.5) * 20;
+    function buildItems() {
+      // 1. วางเหรียญทองตามทาง
+      for (let z = -40; z > -2500; z -= 30) {
+        const lane = [-8, 0, 8][Math.floor(Math.random() * 3)];
         const coinGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.3, 16);
         const coinMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
         const coin = new THREE.Mesh(coinGeo, coinMat);
         coin.rotation.x = Math.PI / 2;
-        coin.position.set(laneX, 1.2, z);
+        coin.position.set(lane, 1.4, z);
         scene.add(coin);
-        coins3D.push({ mesh: coin, x: laneX, z: z, collected: false });
+        coins.push({ mesh: coin, x: lane, z: z, hit: false });
+      }
+
+      // 2. วางป้ายภารกิจ 3 ป้ายเรียงหน้ากระดาน 3 เลน
+      missionList.forEach(m => {
+        m.cards.forEach(c => {
+          const signMesh = createSignBoard(c.text, c.color === 0x10b981 ? "#059669" : "#dc2626");
+          signMesh.position.set(c.lane, 2.2, m.zPos);
+          scene.add(signMesh);
+          targetSigns.push({
+            mesh: signMesh, x: c.lane, z: m.zPos,
+            isTarget: c.type === m.targetType,
+            hit: false
+          });
+        });
+      });
+
+      // 3. สิ่งกีดขวาง (กรวยจราจร)
+      for (let z = -90; z > -2400; z -= 65) {
+        const lane = [-4, 4][Math.floor(Math.random() * 2)];
+        const coneGeo = new THREE.ConeGeometry(1.0, 2.5, 8);
+        const coneMat = new THREE.MeshLambertMaterial({ color: 0xea580c });
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.position.set(lane, 1.2, z);
+        scene.add(cone);
+        obstacles.push({ mesh: cone, x: lane, z: z, hit: false });
       }
     }
 
-    function setupControls() {
+    function setupInput() {
       window.addEventListener("keydown", e => {
         const k = e.key.toLowerCase();
         if (k === "arrowup" || k === "w") keys.up = true;
@@ -213,10 +356,10 @@
         if (k === "arrowright" || k === "d") keys.right = false;
       });
 
-      const bindBtn = (id, k) => {
+      const bindBtn = (id, act) => {
         const el = document.getElementById(id);
-        el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[k] = true; });
-        el.addEventListener("touchend", () => keys[k] = false);
+        el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[act] = true; });
+        el.addEventListener("touchend", () => keys[act] = false);
       };
       bindBtn("btn-up", "up");
       bindBtn("btn-down", "down");
@@ -224,16 +367,48 @@
       bindBtn("btn-right", "right");
     }
 
-    function update() {
-      if (isModalOpen) return;
+    function showToast(text, color) {
+      const toast = document.getElementById("action-toast");
+      toast.innerText = text;
+      toast.style.color = color;
+      toast.style.opacity = "1";
+      toast.style.transform = "translate(-50%, -60%) scale(1.15)";
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translate(-50%, -50%) scale(1)";
+      }, 750);
+    }
 
+    function updateMissionHUD() {
+      if (currentMissionIdx < missionList.length) {
+        document.getElementById("m-stage").innerText = `🎯 ภารกิจที่ ${currentMissionIdx + 1} / ${missionList.length}`;
+        document.getElementById("m-text").innerText = missionList[currentMissionIdx].prompt;
+      } else {
+        document.getElementById("m-stage").innerText = "🏆 CHAMPION!";
+        document.getElementById("m-text").innerText = "คุณพิชิตทุกภารกิจ Word Road สำเร็จแล้ว!";
+      }
+    }
+
+    function updatePhysics() {
+      // ควบคุมการขับ
       if (keys.up) carPhysics.speed += carPhysics.accel;
       else if (keys.down) carPhysics.speed -= carPhysics.accel * 1.5;
       else {
         if (carPhysics.speed > 0) carPhysics.speed = Math.max(0, carPhysics.speed - carPhysics.friction);
         if (carPhysics.speed < 0) carPhysics.speed = Math.min(0, carPhysics.speed + carPhysics.friction);
       }
-      carPhysics.speed = Math.max(-0.4, Math.min(carPhysics.speed, carPhysics.maxSpeed));
+
+      // ระบบเทอร์โบไนตรัส
+      if (carPhysics.boostTimer > 0) {
+        carPhysics.boostTimer--;
+        carPhysics.currentMaxSpeed = carPhysics.baseMaxSpeed * 1.5;
+        document.getElementById("nitro-tag").style.display = "block";
+      } else {
+        carPhysics.currentMaxSpeed = carPhysics.baseMaxSpeed;
+        document.getElementById("nitro-tag").style.display = "none";
+      }
+
+      carPhysics.speed = Math.max(-0.4, Math.min(carPhysics.speed, carPhysics.currentMaxSpeed));
 
       if (carPhysics.speed !== 0) {
         const dir = carPhysics.speed > 0 ? 1 : -1;
@@ -242,79 +417,70 @@
       }
 
       carPhysics.x -= Math.sin(carPhysics.angle) * carPhysics.speed;
-      const nextZ = carPhysics.z - Math.cos(carPhysics.angle) * carPhysics.speed;
-      carPhysics.x = Math.max(-13, Math.min(13, carPhysics.x));
+      carPhysics.z -= Math.cos(carPhysics.angle) * carPhysics.speed;
+      carPhysics.x = Math.max(-14, Math.min(14, carPhysics.x));
 
-      // ชนเหรียญทอง
-      coins3D.forEach(c => {
-        if (!c.collected && Math.hypot(carPhysics.x - c.x, carPhysics.z - c.z) < 2.5) {
-          c.collected = true;
+      // 1. ขับชนเก็บเหรียญ
+      coins.forEach(c => {
+        if (!c.hit && Math.hypot(carPhysics.x - c.x, carPhysics.z - c.z) < 2.5) {
+          c.hit = true;
           scene.remove(c.mesh);
-          sessionCoins += 10;
-          document.getElementById("hud-coins").innerText = `🪙 ${sessionCoins}`;
+          coinCount += 5;
+          score += 10;
+          document.getElementById("stat-coins").innerText = coinCount;
+          document.getElementById("stat-pts").innerText = score;
         }
       });
 
-      // หมุนเหรียญ
-      coins3D.forEach(c => { if (!c.collected) c.mesh.rotation.z += 0.05; });
+      // 2. ขับชนป้ายภารกิจ
+      targetSigns.forEach(s => {
+        if (!s.hit && Math.hypot(carPhysics.x - s.x, carPhysics.z - s.z) < 3.2) {
+          s.hit = true;
+          scene.remove(s.mesh);
 
-      // ชนม่านเลเซอร์
-      let blocked = false;
-      checkpoints.forEach((cp, idx) => {
-        if (!cp.passed && carPhysics.z > cp.z && nextZ <= cp.z + 1.5) {
-          blocked = true;
-          carPhysics.speed = 0;
-          openCheckpoint(idx);
+          if (s.isTarget) {
+            // ชนถูกป้าย: เร่งเทอร์โบ + คะแนนพุ่ง
+            score += 100;
+            coinCount += 25;
+            carPhysics.boostTimer = 90; // พุ่งเร็ว 90 เฟรม
+            showToast("PERFECT HIT! ⚡ NITRO BOOST", "#4ade80");
+            currentMissionIdx++;
+            updateMissionHUD();
+          } else {
+            // ชนผิดป้าย: ความเร็วตก
+            carPhysics.speed *= 0.35;
+            showToast("WRONG TARGET! SPEED DOWN", "#ef4444");
+          }
+          document.getElementById("stat-coins").innerText = coinCount;
+          document.getElementById("stat-pts").innerText = score;
         }
       });
 
-      if (!blocked) carPhysics.z = nextZ;
+      // 3. ขับชนสิ่งกีดขวาง
+      obstacles.forEach(ob => {
+        if (!ob.hit && Math.hypot(carPhysics.x - ob.x, carPhysics.z - ob.z) < 2.0) {
+          ob.hit = true;
+          carPhysics.speed *= 0.3;
+          showToast("CRASH!", "#f97316");
+        }
+      });
 
+      // อัปเดตรถ & มุมกล้อง
       carGroup.position.set(carPhysics.x, 0, carPhysics.z);
       carGroup.rotation.y = carPhysics.angle;
 
-      camera.position.set(carPhysics.x, 6.0, carPhysics.z + 14.0);
-      camera.lookAt(carPhysics.x, 2.0, carPhysics.z - 8.0);
-    }
+      camera.position.set(carPhysics.x, 5.8, carPhysics.z + 13.5);
+      camera.lookAt(carPhysics.x, 1.8, carPhysics.z - 8.0);
 
-    function openCheckpoint(idx) {
-      isModalOpen = true;
-      const cp = checkpoints[idx];
-      document.getElementById("cp-stage-title").innerText = `CHECKPOINT ${idx + 1} / 12`;
-      document.getElementById("cp-question").innerText = cp.qData.q;
-      const list = document.getElementById("cp-options-list");
-      list.innerHTML = "";
-
-      cp.qData.opts.forEach(opt => {
-        const b = document.createElement("button");
-        b.className = "cp-btn-choice";
-        b.innerText = opt;
-        b.onclick = () => {
-          if (opt === cp.qData.target) {
-            alert("ยอดเยี่ยม! ปลดล็อกม่านเลเซอร์ (+50 Coins)");
-            sessionCoins += 50;
-            document.getElementById("hud-coins").innerText = `🪙 ${sessionCoins}`;
-            cp.passed = true;
-            cp.laser.material.color.setHex(0x10b981);
-            cp.laser.material.opacity = 0.15;
-            document.getElementById("checkpoint-modal").style.display = "none";
-            isModalOpen = false;
-            carPhysics.z -= 4;
-            currentStage++;
-            document.getElementById("hud-score").innerText = `ด่าน ${Math.min(currentStage + 1, 12)} / 12`;
-          } else {
-            alert("ยังไม่ถูกต้อง! ลองเลือกใหม่อีกครั้งเพื่อปลดล็อกม่านเลเซอร์");
-          }
-        };
-        list.appendChild(b);
-      });
-
-      document.getElementById("checkpoint-modal").style.display = "flex";
+      // อัปเดตความเร็ว KM/H
+      const speedKMH = Math.round(Math.abs(carPhysics.speed) * 90);
+      document.getElementById("speed-val").innerText = speedKMH;
     }
 
     function animate() {
       requestAnimationFrame(animate);
-      update();
+      updatePhysics();
+      coins.forEach(c => { if (!c.hit) c.mesh.rotation.z += 0.05; });
       renderer.render(scene, camera);
     }
 
