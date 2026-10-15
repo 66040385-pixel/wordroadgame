@@ -35,39 +35,59 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#60a5fa;position:f
 .v-btn:active{transform:scale(.9);background:rgba(56,189,248,.5);border-color:#38bdf8}
 .v-btn svg{width:34px;height:34px;fill:#fff}
 #toast-msg{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);font:900 2.4rem 'Chakra Petch';font-style:italic;color:#4ade80;text-shadow:0 0 25px #22c55e,0 4px 0 #000;pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;white-space:nowrap}
+
+/* COUNTDOWN SCREEN */
+#countdown-screen{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:180;pointer-events:none}
+.cd-lights{display:flex;gap:16px;background:rgba(15,23,42,.85);padding:14px 28px;border-radius:999px;border:3px solid #38bdf8;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.cd-lamp{width:32px;height:32px;border-radius:50%;background:#334155;border:2px solid rgba(255,255,255,.3)}
+.cd-lamp.red{background:#ef4444;box-shadow:0 0 20px #ef4444}
+.cd-lamp.green{background:#22c55e;box-shadow:0 0 25px #22c55e}
+#cd-text{font:900 6.5rem 'Chakra Petch';font-style:italic;color:#facc15;text-shadow:0 0 35px #facc15,0 6px 0 #000;margin-top:10px;animation:zoomIn .4s cubic-bezier(0.18, 0.89, 0.32, 1.28)}
+@keyframes zoomIn{from{transform:scale(0.3);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* VICTORY MODAL */
 #victory-modal{position:fixed;inset:0;background:rgba(10,15,29,.88);backdrop-filter:blur(14px);display:none;justify-content:center;align-items:center;padding:18px;z-index:200}
 .victory-box{background:linear-gradient(145deg,#0284c7,#0369a1 40%,#0f172a);border:5px solid #38bdf8;border-radius:34px;padding:30px;max-width:480px;width:100%;text-align:center;box-shadow:0 0 50px rgba(56,189,248,.5)}
 .btn-upgrade{width:100%;padding:14px;border-radius:20px;border:none;background:linear-gradient(180deg,#10b981,#059669);color:#fff;font:900 1.2rem 'Chakra Petch';cursor:pointer;box-shadow:0 6px 0 #047857;margin-top:18px}
-#mission-card{display:none;position:fixed;top:76px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.93);border:3px solid #facc15;border-radius:20px;padding:8px 14px 10px;text-align:center;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.mt{font:900 .8rem 'Chakra Petch';color:#facc15}
-#mission-task{font-weight:900;font-size:1.05rem;margin:2px 0 8px}
-#mission-opts{display:flex;gap:12px;justify-content:center}
-.mopt{position:relative;width:78px;height:70px;border-radius:16px;border:3px solid #38bdf8;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.mopt:active{background:#bae6fd}
-.mopt span{position:absolute;top:-9px;left:-9px;background:#38bdf8;color:#fff;border-radius:50%;width:22px;height:22px;font:900 .8rem 'Chakra Petch';display:flex;align-items:center;justify-content:center}
-.lines{display:flex;flex-direction:column;gap:5px;width:46px;pointer-events:none}.lines i{display:block;height:6px;background:#0f172a;border-radius:3px}
-.mopt b{pointer-events:none}
-#mission-barwrap{height:7px;background:#334155;border-radius:4px;margin-top:9px;overflow:hidden}#mission-bar{height:100%;width:100%;background:#4ade80}
-#bonus{display:none;position:fixed;inset:0;background:rgba(10,15,29,.8);backdrop-filter:blur(6px);z-index:150;justify-content:center;align-items:center;padding:12px}
-.b-box{background:linear-gradient(145deg,#0f172a,#1e3a8a);border:4px solid #facc15;border-radius:26px;padding:16px 20px;max-width:580px;width:100%;text-align:center;max-height:96vh;overflow:auto;box-shadow:0 0 50px rgba(250,204,21,.35)}
+
+/* BONUS TIME INTERACTIVE */
+#bonus{display:none;position:fixed;inset:0;background:rgba(10,15,29,.85);backdrop-filter:blur(8px);z-index:150;justify-content:center;align-items:center;padding:12px}
+.b-box{background:linear-gradient(145deg,#0f172a,#1e3a8a);border:4px solid #facc15;border-radius:26px;padding:18px 24px;max-width:620px;width:100%;text-align:center;max-height:96vh;overflow:auto;box-shadow:0 0 50px rgba(250,204,21,.35)}
 .b-head{display:flex;justify-content:space-between;align-items:center;font:900 1.1rem 'Chakra Petch';color:#facc15}
 #b-time{font:900 2.6rem 'Chakra Petch';font-style:italic;color:#fff}#b-time.low{color:#ef4444}
-#b-step{font-weight:800;color:#93c5fd}
-#b-task{font-weight:900;font-size:1.25rem;margin:8px 0 14px}
-#b-opts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding-top:6px}
-.mopt.t{width:auto;min-width:120px;padding:0 14px;font:900 1.05rem 'Chakra Petch'}
+#b-step{font-weight:800;color:#93c5fd;margin-top:4px}
+#b-task{font-weight:900;font-size:1.3rem;margin:8px 0 14px}
+#b-workarea{background:#ffffff;border-radius:18px;padding:16px;color:#0f172a;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.word-ribbon-bar{display:flex;gap:8px;justify-content:center;margin-bottom:12px;border-bottom:2px dashed #cbd5e1;padding-bottom:10px}
+.tool-btn{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:6px 14px;font:900 1.1rem 'Chakra Petch';color:#1e293b;cursor:pointer}
+.tool-btn:active{transform:scale(.95)}
+.tool-btn.active{background:#38bdf8;border-color:#0284c7;color:#fff}
+.doc-sheet{background:#f8fafc;border:2px solid #94a3b8;border-radius:12px;padding:14px;min-height:70px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700}
+#b-opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.mopt{position:relative;width:82px;height:72px;border-radius:16px;border:3px solid #38bdf8;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mopt:active{background:#bae6fd}
+.mopt span{position:absolute;top:-9px;left:-9px;background:#38bdf8;color:#fff;border-radius:50%;width:22px;height:22px;font:900 .8rem 'Chakra Petch';display:flex;align-items:center;justify-content:center}
+.mopt.t{width:auto;min-width:130px;padding:0 16px;font:900 1.1rem 'Chakra Petch'}
 #b-know{display:none;background:#fef9c3;color:#422006;border-radius:16px;padding:12px 14px;text-align:left;margin-top:10px;border:3px dashed #f59e0b}
 #b-know h4{font:900 1.1rem 'Kanit';margin-bottom:4px}
 #b-know p{font-weight:500;line-height:1.5}
-#b-wait{display:none;margin:12px 0;font-weight:800;color:#4ade80;font-size:1.1rem;line-height:1.5}
-#b-result{display:none}
-.b-btn{padding:10px 22px;border-radius:16px;border:none;background:linear-gradient(180deg,#10b981,#059669);color:#fff;font:900 1.1rem 'Chakra Petch';cursor:pointer;box-shadow:0 4px 0 #047857;margin-top:10px}
+#b-wait{display:none;margin:12px 0;font-weight:800;color:#4ade80;font-size:1.15rem;line-height:1.5}
+.b-btn{padding:12px 28px;border-radius:18px;border:none;background:linear-gradient(180deg,#10b981,#059669);color:#fff;font:900 1.15rem 'Chakra Petch';cursor:pointer;box-shadow:0 4px 0 #047857;margin-top:8px}
 .rrow{display:flex;gap:10px;align-items:center;padding:5px 12px;border-radius:12px;background:rgba(15,23,42,.55);margin-bottom:5px;font:800 1rem 'Kanit'}
 .rrow.me{background:#facc15;color:#0f172a}.rrow b{min-width:34px}.rrow .t{margin-left:auto;font-family:'Chakra Petch'}
 </style>
 </head>
 <body>
 <div id="three-container"></div>
+
+<div id="countdown-screen">
+  <div class="cd-lights">
+    <div class="cd-lamp" id="lamp-1"></div>
+    <div class="cd-lamp" id="lamp-2"></div>
+    <div class="cd-lamp" id="lamp-3"></div>
+  </div>
+  <div id="cd-text">3</div>
+</div>
 
 <div id="rank-list"></div>
 <div id="mission-banner">
@@ -103,21 +123,22 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#60a5fa;position:f
 <div id="victory-modal">
   <div class="victory-box">
     <h2 id="res-title" style="font:900 2rem 'Chakra Petch';font-style:italic;color:#facc15"></h2>
-    <p style="color:#cbd5e1;font-size:.9rem">เรียงตามเวลาเข้าเส้นชัย (ไม่นับเวลาโบนัสไทม์)</p>
+    <p style="color:#cbd5e1;font-size:.9rem">เรียงตามเวลาเข้าเส้นชัย</p>
     <div id="res-list" style="margin:12px 0;text-align:left"></div>
     <div id="res-reward" style="font:900 1.4rem 'Chakra Petch';color:#4ade80"></div>
     <button class="btn-upgrade" onclick="goNext()">กลับสู่ล็อบบี้เลือกด่านต่อไป</button>
   </div>
 </div>
+
 <div id="bonus"><div class="b-box">
-  <div class="b-head"><span>⏱ BONUS TIME · รถทุกคันหยุดทำภารกิจ</span><b id="b-time">60</b></div>
+  <div class="b-head"><span>⏱ LAP BONUS · ทำภารกิจรับ N2O บูสต์</span><b id="b-time">30</b></div>
   <div id="b-step"></div>
   <div id="b-task"></div>
+  <div id="b-workarea"></div>
   <div id="b-opts"></div>
-  <div id="b-know"><h4>📘 ใบความรู้</h4><p id="b-know-text"></p><button class="b-btn" id="b-retry">ตอบใหม่ (Enter)</button></div>
+  <div id="b-know"><h4>📘 ใบความรู้จุดสังเกต</h4><p id="b-know-text"></p><button class="b-btn" id="b-retry">ลองทำใหม่ (Enter)</button></div>
   <div id="b-wait"></div>
-  <div id="b-result"></div>
-  <button class="b-btn" id="b-go" style="display:none">เริ่มแข่งต่อ (Enter)</button>
+  <button class="b-btn" id="b-go" style="display:none">เริ่มแข่งต่อทันที! (Enter)</button>
 </div></div>
 
 <script>
@@ -139,7 +160,7 @@ const stageDatabase = {
   12: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: สกุลไฟล์ล็อกหน้ากระดาษพิมพ์", cards: [{ text: ".PDF", ok: true, lane: -8.5 }, { text: ".DOCX", ok: false, lane: 0 }, { text: ".TXT", ok: false, lane: 8.5 }] }
 };
 const cur = stageDatabase[stageId] || stageDatabase[1];
-/* ---------- 12 แมพ: ธีม สี ของข้างทาง ---------- */
+
 const THEMES = {
   1:{n:"ทุ่งหญ้ายามเช้า",sky:[0x3b9cf0,0xd4f0ff],gnd:0x6ee7a0,hill:[0x86efac,0x4ade80,0x74b9e0],hs:"sphere",road:0x3b4658,curb:[0xef4444,0xffffff],wall:[0x2563eb,0xf8fafc],near:"tree",far:"house",fc:[0xfde68a,0xfca5a5,0xbfdbfe,0xbbf7d0]},
   2:{n:"ชายหาดทรายขาว",sky:[0x22a6f2,0xc9f3ff],gnd:0xfde7a8,hill:[0x67e8f9,0x38bdf8,0x22d3ee],hs:"sphere",road:0x475569,curb:[0xfb923c,0xffffff],wall:[0x06b6d4,0xffffff],near:"palm",far:"blob",fc:[0xf9a8d4,0xfde68a,0x93c5fd]},
@@ -155,32 +176,34 @@ const THEMES = {
   12:{n:"สนามแกรนด์ปรีซ์",sky:[0x1d4ed8,0xfef3c7],gnd:0x4ade80,hill:[0xfde68a,0xfacc15,0xf59e0b],hs:"sphere",road:0x1f2937,curb:[0xfacc15,0x0f172a],wall:[0xfacc15,0x0f172a],near:"flag",far:"tower",fc:[0xfacc15,0xf59e0b]}
 };
 const TH = THEMES[stageId] || THEMES[1];
-// 4 รูปทรงสนาม (กลับซ้ายขวาด่าน 5-8, ขยาย 1.2 เท่าด่าน 9-12)
+
 const SHAPES = [
   [[0,60],[0,-150],[50,-280],[170,-340],[300,-300],[340,-180],[290,-80],[190,-60],[120,20],[60,90]],
   [[0,60],[0,-200],[60,-330],[210,-380],[350,-320],[400,-190],[350,-100],[350,-10],[400,80],[260,160],[100,130]],
   [[0,60],[-20,-120],[40,-250],[160,-290],[250,-230],[230,-120],[300,-40],[420,-60],[460,40],[360,120],[200,100],[80,130]],
   [[0,80],[0,-290],[100,-400],[260,-410],[370,-320],[350,-190],[250,-150],[240,-60],[330,20],[260,140],[100,140]]
 ];
-const HW = 16;                         // ครึ่งความกว้างถนน
+const HW = 16;
 const $ = id => document.getElementById(id);
 const gm = new THREE.DataTexture(new Uint8Array([110, 190, 255]), 3, 1, THREE.LuminanceFormat);
 gm.minFilter = gm.magFilter = THREE.NearestFilter; gm.needsUpdate = true;
 const toon = (c, o) => new THREE.MeshToonMaterial(Object.assign({ color: c, gradientMap: gm }, o));
 let sky, clouds;
-const TOTAL_LAPS = 5, BONUS_SEC = 60, BONUS_AT = 1;   // 5 รอบ / โบนัสไทม์ 60 วินาที / เกิดเมื่อจบรอบที่ 1
-let raceF = 0, bonus = null, bonusDone = false, acc = 0, lastT = 0;
+
+const TOTAL_LAPS = 5, BONUS_SEC = 30;
+let raceF = 0, bonus = null, acc = 0, lastT = 0, lastBonusLap = 0;
+let isCountingDown = true, countdownTimer = 3;
+
 const fmt = t => { const ms = Math.round(t * 1000); return String(Math.floor(ms / 60000)).padStart(2, "0") + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0") + "." + String(ms % 1000).padStart(3, "0"); };
-const RATIO = [1.04, .95, 1.0, .88, .80], SKILL = [.85, .7, .6, .8, .45];   // ความเร็วเทียบผู้เล่น / โอกาสทำภารกิจสำเร็จ
+const RATIO = [1.02, .95, .98, .88, .80], SKILL = [.85, .7, .6, .8, .45];
 const SPH = new THREE.SphereGeometry(1, 14, 10);
 const mk = (g, geo, c, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, em) => { const m = new THREE.Mesh(geo, toon(c, em ? { emissive: em } : undefined)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
 
 let scene, camera, renderer, sun, car, camAngle = 0, frame = 0;
 let items = [], signs = [], ais = [], skids = [], parts = [];
-let coinScore = 0, isCleared = false, t0 = 0, skidI = 0, partI = 0;
+let isCleared = false, skidI = 0, partI = 0;
 const keys = { up:false, down:false, left:false, right:false };
 
-/* ---------- เส้นทางสนาม (โค้งปิดเป็นวงรอบ) ---------- */
 const MIR = stageId >= 5 && stageId <= 8 ? -1 : 1, SC = stageId >= 9 ? 1.2 : 1;
 const curve = new THREE.CatmullRomCurve3(
   SHAPES[(stageId - 1) % 4].map(p => new THREE.Vector3(MIR * p[0] * SC, 0, p[1] * SC)), true, 'catmullrom', 0.5);
@@ -228,23 +251,54 @@ function init() {
     ais.push({ k, s, s0: s, i, lane: l, sp: P.baseMax * RATIO[i], skill: SKILL[i], n2o: 0, bt: 0, fin: null, name });
   });
 
-  // รอยดริฟต์ + ควัน
   const sg = new THREE.PlaneGeometry(0.6, 2.2), sm = new THREE.MeshBasicMaterial({ color: 0x0b0f1a, transparent: true, opacity: 0.55 });
   for (let i = 0; i < 160; i++) { const m = new THREE.Mesh(sg, sm); m.rotation.order = 'YXZ'; m.rotation.x = -Math.PI/2; m.visible = false; scene.add(m); skids.push(m); }
   const pg = new THREE.SphereGeometry(0.5, 6, 6);
   for (let i = 0; i < 30; i++) { const m = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })); m.visible = false; scene.add(m); parts.push({ m, l: 0, vy: 0 }); }
 
   $("m-stage-badge").innerText = `STAGE ${stageId} / 12 · ${TH.n}`;
-  $("m-quest-text").innerText = `ครบ ${TOTAL_LAPS} รอบ · เข้าเส้นชัยเร็วสุดชนะ`;
+  $("m-quest-text").innerText = `ซิ่งพิชิต 5 รอบ · แวะทำภารกิจทุกรอบที่เข้าเส้นชัย`;
   $("vehicle-val").innerText = cur.name;
   setupInputs();
   addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
-  t0 = performance.now();
-  showToast("GO! 🏁", "#facc15");
+  
+  startCountdown();
   animate();
 }
 
-/* ---------- สนาม: ถนนโค้ง + ขอบแดงขาว + กำแพงกั้น ---------- */
+/* ---------- START COUNTDOWN SEQUENCE (3.. 2.. 1.. GO!) ---------- */
+function startCountdown() {
+  isCountingDown = true;
+  countdownTimer = 3;
+  $("countdown-screen").style.display = "flex";
+  $("lamp-1").className = "cd-lamp red";
+  $("lamp-2").className = "cd-lamp red";
+  $("lamp-3").className = "cd-lamp red";
+  $("cd-text").innerText = "3";
+
+  const cdInterval = setInterval(() => {
+    countdownTimer--;
+    if (countdownTimer === 2) {
+      $("cd-text").innerText = "2";
+      $("lamp-3").className = "cd-lamp";
+    } else if (countdownTimer === 1) {
+      $("cd-text").innerText = "1";
+      $("lamp-2").className = "cd-lamp";
+    } else if (countdownTimer === 0) {
+      $("cd-text").innerText = "GO! 🏁";
+      $("cd-text").style.color = "#4ade80";
+      $("lamp-1").className = "cd-lamp green";
+      $("lamp-2").className = "cd-lamp green";
+      $("lamp-3").className = "cd-lamp green";
+      isCountingDown = false;
+      showToast("START RACE! 🏁", "#facc15");
+    } else {
+      clearInterval(cdInterval);
+      $("countdown-screen").style.display = "none";
+    }
+  }, 1000);
+}
+
 function strip(a, ya, b, yb, col) {
   const pos = [], cl = [];
   for (let i = 0; i < N; i++) {
@@ -260,6 +314,7 @@ function strip(a, ya, b, yb, col) {
   const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }));
   m.receiveShadow = true; scene.add(m);
 }
+
 function buildTrack() {
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshLambertMaterial({ color: TH.gnd }));
   ground.rotation.x = -Math.PI/2; ground.position.set(CX, 0, CZ); ground.receiveShadow = true; scene.add(ground);
@@ -271,6 +326,7 @@ function buildTrack() {
   const line = new THREE.Mesh(new THREE.BoxGeometry(HW * 2, .1, 3), new THREE.MeshBasicMaterial({ color: 0xffffff }));
   line.position.set(pts[0].x, .4, pts[0].z); line.rotation.y = Math.atan2(-rgt[0].z, rgt[0].x); scene.add(line);
 }
+
 function buildSky() {
   sky = new THREE.Mesh(new THREE.SphereGeometry(1200, 24, 16), new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false,
@@ -279,11 +335,6 @@ function buildSky() {
     fragmentShader: 'uniform vec3 t,h;varying float y;void main(){gl_FragColor=vec4(mix(h,t,pow(clamp(y,0.,1.),.55)),1.);}'
   }));
   sky.renderOrder = -1; scene.add(sky);
-  if (TH.night) {
-    const sp = []; for (let i = 0; i < 280; i++) { const a = Math.random() * 6.283, e = .1 + Math.random() * 1.2, r = 1100; sp.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r); }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
-    sky.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 2.5, sizeAttenuation: false, fog: false })));
-  }
   clouds = new THREE.Group();
   const cm = toon(TH.night ? 0x7c8ad6 : 0xffffff, { emissive: TH.night ? 0x2a3466 : 0x9fb6d6, fog: false });
   for (let i = 0; i < 36; i++) {
@@ -303,6 +354,7 @@ function buildSky() {
     m.position.set(CX + Math.cos(an) * d, TH.hs === "cone" ? h / 2 : 0, CZ + Math.sin(an) * d); scene.add(m);
   }
 }
+
 function buildStartArch() {
   const g = new THREE.Group(), cv = document.createElement("canvas"); cv.width = 512; cv.height = 128;
   const x = cv.getContext("2d");
@@ -314,7 +366,6 @@ function buildStartArch() {
   g.position.set(pts[10].x, 0, pts[10].z); g.rotation.y = Math.atan2(-rgt[10].z, rgt[10].x); scene.add(g);
 }
 
-/* ---------- ฉากข้างทาง ตามธีมของแต่ละแมพ ---------- */
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 function nearProp(t) {
   const g = new THREE.Group(), r = Math.random(), C = THREE.CylinderGeometry, K = THREE.ConeGeometry;
@@ -336,6 +387,7 @@ function nearProp(t) {
   else if (t === "flag") { mk(g, new C(.15, .15, 9, 6), 0xe5e7eb, 0, 4.5, 0); mk(g, new THREE.BoxGeometry(3, 1.8, .1), rnd([0xef4444, 0xfacc15, 0x60a5fa]), 1.6, 8.2, 0); }
   return g;
 }
+
 function farProp(t, fc) {
   const g = new THREE.Group(), r = Math.random(), C = THREE.CylinderGeometry, K = THREE.ConeGeometry;
   if (t === "house") {
@@ -349,6 +401,7 @@ function farProp(t, fc) {
   else if (t === "big") { const n = nearProp(TH.near); n.scale.setScalar(3.2); return n; }
   return g;
 }
+
 function buildScenery() {
   const at = (i, off) => [pts[i].x + rgt[i].x * off, pts[i].z + rgt[i].z * off];
   for (let i = 0; i < N; i += 13) for (const sd of [-1, 1]) {
@@ -362,28 +415,22 @@ function buildScenery() {
     if (Math.random() < .4) continue;
     const [x, z] = at(i, sd * (27 + Math.random() * 8)), g = nearProp(TH.near); g.position.set(x, 0, z); scene.add(g);
   }
-  for (let i = 20; i < N; i += 85) {
-    const [x, z] = at(i, (Math.random() < .5 ? -1 : 1) * (70 + Math.random() * 60)), g = new THREE.Group();
-    mk(g, SPH, [0xf87171, 0xfacc15, 0x60a5fa, 0xc084fc][i % 4], 0, 0, 0, 5, 6, 5); mk(g, new THREE.BoxGeometry(2.2, 1.6, 2.2), 0x92400e, 0, -8, 0);
-    g.position.set(x, 38 + Math.random() * 20, z); scene.add(g);
-  }
 }
 
-/* ---------- รถ + คนขับหัวโต สไตล์ KartRider (ตัวถังมนๆ น่ารัก) ---------- */
 function makeKart(body, hat, ears) {
   const g = new THREE.Group(), S = new THREE.SphereGeometry(1, 16, 12);
   const add = (geo, c, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, toon(c)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
-  add(S, body, 0, .85, 0, 1.75, .65, 2.2);            // ตัวถังมนๆ
-  add(S, body, 0, .7, -2.3, 1.45, .45, .95);          // จมูกรถ
-  add(S, 0xffffff, 0, .75, -3.1, .95, .3, .35);       // กันชนหน้าขาว
-  add(S, body, 0, 1.25, 1.9, 1.2, .55, 1);            // ท้ายรถ
+  add(S, body, 0, .85, 0, 1.75, .65, 2.2);
+  add(S, body, 0, .7, -2.3, 1.45, .45, .95);
+  add(S, 0xffffff, 0, .75, -3.1, .95, .3, .35);
+  add(S, body, 0, 1.25, 1.9, 1.2, .55, 1);
   add(new THREE.BoxGeometry(3.7, .22, .9), 0x1e293b, 0, 2, 2.6);
   [-1.7, 1.7].forEach(x => add(new THREE.BoxGeometry(.2, .8, 1), body, x, 1.7, 2.6));
-  add(S, 0x3b82f6, 0, 1.95, .5, .85, .8, .7);         // ตัวคนขับ
-  add(S, hat, 0, 3.35, .4, 1.4, 1.4, 1.4);            // หัวโต
+  add(S, 0x3b82f6, 0, 1.95, .5, .85, .8, .7);
+  add(S, hat, 0, 3.35, .4, 1.4, 1.4, 1.4);
   if (ears) [-1, 1].forEach(s => add(S, hat, s * 1.05, 4.45, .4, .5, .5, .35));
-  else add(S, 0xffffff, 0, 4.8, .4, .32, .32, .32);   // ปอมปอมบนหมวก
-  [-1, 1].forEach(s => add(S, 0xfde68a, s * .95, 2, -.3, .3, .3, .3)); // มือจับพวงมาลัย
+  else add(S, 0xffffff, 0, 4.8, .4, .32, .32, .32);
+  [-1, 1].forEach(s => add(S, 0xfde68a, s * .95, 2, -.3, .3, .3, .3));
   g.userData.wheels = []; g.userData.front = [];
   [[-1.95, -1.7, 1], [1.95, -1.7, 1], [-1.95, 1.7, 0], [1.95, 1.7, 0]].forEach(([x, z, f]) => {
     const wg = new THREE.Group(), sp = new THREE.Group(); wg.add(sp);
@@ -399,8 +446,6 @@ function makeKart(body, hat, ears) {
   return g;
 }
 
-/* ---------- ไอเทมบ็อกซ์ "?" + ป้ายคำตอบ ---------- */
-const GI = Math.floor(N * 0.44);
 function buildItems() {
   const c = document.createElement("canvas"); c.width = c.height = 64;
   const x = c.getContext("2d"); x.fillStyle = "#fff"; x.strokeStyle = "#92400e"; x.lineWidth = 6; x.font = "900 54px Kanit,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
@@ -414,33 +459,13 @@ function buildItems() {
     items.push({ m, x: px, z: pz, hit: false });
   }
 }
-function createSign(text, ok) {
-  const group = new THREE.Group(), cv = document.createElement("canvas"); cv.width = 512; cv.height = 256;
-  const ctx = cv.getContext("2d");
-  ctx.fillStyle = ok ? "#059669" : "#dc2626"; ctx.beginPath(); (ctx.roundRect || ctx.rect).call(ctx, 10, 10, 492, 236, 30); ctx.fill();
-  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; ctx.stroke();
-  ctx.fillStyle = "#fff"; ctx.font = "900 64px Kanit,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, 256, 128);
-  const board = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 3.6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), side: THREE.DoubleSide }));
-  board.position.y = 2.4; group.add(board);
-  const pm = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
-  [-3, 3].forEach(px => { const p = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, 2.5), pm); p.position.set(px, 1.25, 0); group.add(p); });
-  return group;
-}
-function buildGate() {
-  cur.cards.forEach(c => {
-    const g = createSign(c.text, c.ok), x = pts[GI].x + rgt[GI].x * c.lane, z = pts[GI].z + rgt[GI].z * c.lane;
-    g.position.set(x, .2, z); g.lookAt(x - tan[GI].x, .2, z - tan[GI].z); scene.add(g);
-    signs.push({ g, x, z, ok: c.ok, hit: false });
-  });
-}
 
-/* ---------- ควบคุม ---------- */
 function useN2O() {
-  if (P.gauge < 50) { showToast("N2O ว่าง! ทำภารกิจโบนัสไทม์เพื่อรับ", "#f59e0b"); return; }
+  if (P.gauge < 50) { showToast("N2O ว่าง! ทำภารกิจผ่านด่านเพื่อรับ", "#f59e0b"); return; }
   if (P.boost < 10) { P.gauge -= 50; P.boost = 80; showToast("N2O BOOST! ⚡", "#38bdf8"); }
 }
+
 function setupInputs() {
-  // ใช้ e.code เพื่อให้ทำงานแม้เปิดคีย์บอร์ดภาษาไทย
   const map = { ArrowUp:"up", KeyW:"up", ArrowLeft:"left", KeyA:"left", ArrowRight:"right", KeyD:"right" };
   const n2o = ["KeyS","ArrowDown","Space","ShiftLeft","ShiftRight"];
   addEventListener("keydown", e => {
@@ -460,18 +485,21 @@ function setupInputs() {
   [["btn-up","up"],["btn-down","down"],["btn-left","left"],["btn-right","right"]].forEach(([id, a]) => bind(id, () => keys[a] = true, () => keys[a] = false));
   bind("btn-n2o", useN2O, () => {});
 }
+
 function showToast(text, color) {
   const t = $("toast-msg"); t.innerText = text; t.style.color = color; t.style.opacity = "1";
   clearTimeout(showToast.h); showToast.h = setTimeout(() => t.style.opacity = "0", 800);
 }
+
 function puff(x, z, col) {
   const p = parts[partI++ % parts.length]; p.m.position.set(x, .8, z); p.m.material.color.set(col); p.l = 26; p.vy = .04 + Math.random() * .04; p.m.visible = true;
 }
 
-/* ---------- ลูปเกมหลัก ---------- */
 function update() {
   if (isCleared) return;
+  if (isCountingDown) return; // ล็อกรถระหว่างไฟนับถอยหลัง
   if (bonus) { tickBonus(); return; }
+  
   frame++; raceF++;
   let max = P.baseMax;
   if (P.boost > 0) { P.boost--; max *= 1.48; P.speed = Math.min(max, P.speed + .08); }
@@ -483,7 +511,6 @@ function update() {
   P.speed = Math.max(-0.35, Math.min(P.speed, max));
   const sgn = P.speed >= 0 ? 1 : -1, turnIn = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
 
-  // ดริฟต์: กดเลี้ยวค้างตอนความเร็วสูง -> ท้ายปัด, ปล่อยแล้วได้บูสต์
   if (!P.drift) {
     if (turnIn && P.speed > P.baseMax * .7) { if (++P.hold > 10) { P.drift = turnIn; P.charge = 0; showToast("DRIFT!", "#facc15"); } } else P.hold = 0;
   } else if (!turnIn || P.speed < P.baseMax * .5) {
@@ -496,11 +523,17 @@ function update() {
   P.vx += (fx * P.speed - P.vx) * grip; P.vz += (fz * P.speed - P.vz) * grip;
   P.x += P.vx; P.z += P.vz;
 
-  // หาตำแหน่งบนสนาม + ชนกำแพง
   let best = P.idx, bd = 1e9;
   for (let k = -14; k <= 14; k++) { const i = mod(P.idx + k), dx = P.x - pts[i].x, dz = P.z - pts[i].z, d = dx*dx + dz*dz; if (d < bd) { bd = d; best = i; } }
-  if (P.idx > N * .75 && best < N * .25) P.lap++; else if (P.idx < N * .25 && best > N * .75) P.lap--;
+  
+  // เข้าเส้นชัยนับรอบ
+  if (P.idx > N * .75 && best < N * .25) {
+    P.lap++;
+  } else if (P.idx < N * .25 && best > N * .75) {
+    P.lap--;
+  }
   P.idx = best;
+
   const off = (P.x - pts[best].x) * rgt[best].x + (P.z - pts[best].z) * rgt[best].z, lim = HW + 1.3;
   if (Math.abs(off) > lim) {
     const s = Math.sign(off), push = off - s * lim;
@@ -508,7 +541,6 @@ function update() {
     if (frame % 3 === 0) puff(P.x + rgt[best].x * s * 2, P.z + rgt[best].z * s * 2, 0xfde047);
   }
 
-  // กล่องเหลือง = สิ่งกีดขวาง (ชนแล้วช้าลง แล้วกลับมาใหม่)
   items.forEach(it => {
     if (it.cd > 0) { if (--it.cd === 0) { it.hit = false; it.m.visible = true; } return; }
     if (Math.hypot(P.x - it.x, P.z - it.z) < 3.4) {
@@ -516,10 +548,16 @@ function update() {
       showToast("ชนสิ่งกีดขวาง! 💥", "#ef4444"); for (let k = 0; k < 4; k++) puff(it.x, it.z, 0xfacc15);
     }
   });
-  if (P.lap === BONUS_AT && !bonusDone) { startBonus(); return; }
+
+  // ทำภารกิจทุกรอบที่ขับเข้าเส้นชัย (รอบที่ 1, 2, 3, 4)
+  if (P.lap > lastBonusLap && P.lap < TOTAL_LAPS) {
+    lastBonusLap = P.lap;
+    startBonus();
+    return;
+  }
+
   if (P.lap >= TOTAL_LAPS) { finishRace(); return; }
 
-  // รถผู้เล่น
   P.steer += (turnIn - P.steer) * .25;
   car.position.set(P.x, .2, P.z); car.rotation.y = P.angle; car.rotation.z = turnIn * .07;
   car.userData.wheels.forEach(w => w.rotation.x -= P.speed * 1.5);
@@ -533,7 +571,6 @@ function update() {
   });
   parts.forEach(p => { if (p.l > 0) { p.l--; p.m.position.y += p.vy; p.m.scale.setScalar(1 + (26 - p.l) * .09); p.m.material.opacity = p.l / 26 * .55; if (!p.l) p.m.visible = false; } });
 
-  // คู่แข่ง AI วิ่งตามเส้นทาง
   ais.forEach((a, i) => {
     stepAI(a); a.k.userData.flame.forEach(fl => fl.visible = a.bt > 0); const k = Math.floor(a.s), f = a.s - k, A = pts[mod(k)], B = pts[mod(k + 1)], R = rgt[mod(k)], T = tan[mod(k)];
     const ln = a.lane + Math.sin(frame * .02 + i * 2) * 2;
@@ -542,7 +579,6 @@ function update() {
     a.k.userData.wheels.forEach(w => w.rotation.x -= a.sp * 1.5);
   });
 
-  // กล้องไล่ตามท้ายรถ (หน่วงมุมนิดหน่อยให้เห็นท้ายปัดตอนดริฟต์)
   camAngle += (P.angle - camAngle) * .12;
   const cs = Math.sin(camAngle), cc = Math.cos(camAngle), shake = P.boost > 0 ? (Math.random() - .5) * .25 : 0;
   camera.position.set(P.x + cs * 11.5 + shake, 4.8 + (P.boost > 0 ? .6 : 0), P.z + cc * 11.5);
@@ -551,25 +587,26 @@ function update() {
   sun.position.set(P.x + 70, 140, P.z + 70); sun.target.position.set(P.x, 0, P.z);
   sky.position.copy(camera.position); clouds.position.set(P.x * .85, 0, P.z * .85); clouds.rotation.y += .0004;
 
-  // HUD
   $("speed-val").innerText = Math.round(Math.hypot(P.vx, P.vz) * 68);
   const gf = $("gauge-fill"); gf.style.width = P.gauge + "%"; gf.style.background = P.gauge >= 50 ? "#38bdf8" : "#facc15";
   $("time-val").innerText = fmt(raceF / 60); $("stat-lap").innerText = Math.min(P.lap + 1, TOTAL_LAPS) + "/" + TOTAL_LAPS;
   if (frame % 6 === 0) drawRank();
   if (frame % 3 === 0) drawMap();
 }
-/* ---------- AI วิ่ง + จบเกม ---------- */
+
 function stepAI(a) {
   if (a.bt > 0) a.bt--;
   else if (a.n2o > 0 && Math.random() < .003) { a.bt = 80; a.n2o--; }
   a.s += a.sp * (1 + Math.sin(raceF * .01 + a.i * 2) * .015) * (a.bt > 0 ? 1.35 : 1) / SP;
   if (a.fin == null && a.s - a.s0 >= TOTAL_LAPS * N) a.fin = raceF / 60;
 }
+
 function finishRace() {
   isCleared = true; P.fin = raceF / 60; showToast("FINISH! 🏁", "#facc15");
   let g = 0; while (ais.some(a => a.fin == null) && g++ < 400000) { raceF++; ais.forEach(stepAI); }
   setTimeout(showResult, 1300);
 }
+
 function showResult() {
   const L = [{ n: "คุณ", t: P.fin, me: 1 }, ...ais.map(a => ({ n: a.name, t: a.fin }))].sort((a, b) => a.t - b.t);
   $("res-list").innerHTML = L.map((r, i) => `<div class="rrow${r.me ? " me" : ""}"><b>${["🥇", "🥈", "🥉"][i] || i + 1}</b>${r.n}<span class="t">${fmt(r.t)}</span></div>`).join("");
@@ -586,102 +623,213 @@ function showResult() {
   $("victory-modal").style.display = "flex";
 }
 
-/* ---------- BONUS TIME: ทุกคนหยุด ทำ 5 ภารกิจใน 1 นาที ---------- */
+/* ---------- หลากหลายภารกิจโต้ตอบ (INTERACTIVE WORD MISSIONS) ---------- */
 const shuf = a => a.slice().sort(() => Math.random() - .5);
-const MISS = [
-  { t: 'จัดข้อความ "ชิดซ้าย"', k: "left", type: "align" }, { t: 'จัดข้อความ "กึ่งกลาง"', k: "center", type: "align" },
-  { t: 'จัดข้อความ "ชิดขวา"', k: "right", type: "align" }, { t: 'จัดข้อความ "เต็มสองด้าน"', k: "justify", type: "align" },
-  { t: 'ทำตัวอักษร "หนา" (Bold)', k: "bold", type: "style" }, { t: 'ทำตัวอักษร "เอียง" (Italic)', k: "italic", type: "style" },
-  { t: 'ทำตัวอักษร "ขีดเส้นใต้" (Underline)', k: "underline", type: "style" }
+
+const INTERACTIVE_MISSIONS = [
+  {
+    mode: "action_style",
+    q: "แปลงข้อความให้เป็น 'ตัวหนา (Bold)' โดยคลิกที่เครื่องมือที่ถูกต้อง",
+    target: "B",
+    know: "ปุ่ม B (Bold) ใช้สำหรับทำตัวอักษรหนาเน้นข้อความสำคัญ หรือกดคีย์ลัด Ctrl + B"
+  },
+  {
+    mode: "action_style",
+    q: "แปลงข้อความให้เป็น 'ตัวเอียง (Italic)' เพื่อเน้นคำศัพท์เฉพาะ",
+    target: "I",
+    know: "ปุ่ม I (Italic) ใช้สำหรับทำตัวอักษรเอียง หรือกดคีย์ลัด Ctrl + I"
+  },
+  {
+    mode: "action_style",
+    q: "ใส่ 'เส้นใต้ (Underline)' ให้กับข้อความตัวอย่าง",
+    target: "U",
+    know: "ปุ่ม U (Underline) ใช้ขีดเส้นใต้ข้อความ หรือกดคีย์ลัด Ctrl + U"
+  },
+  {
+    mode: "action_align",
+    q: "จัดตำแหน่งข้อความให้อยู่ 'กึ่งกลางหน้ากระดาษ (Center)'",
+    target: "center",
+    know: "การจัดกึ่งกลาง (Center) นิยมใช้กับชื่อเรื่องหน้ากระดาษ หรือกดคีย์ลัด Ctrl + E"
+  },
+  {
+    mode: "action_align",
+    q: "จัดตำแหน่งข้อความให้ 'ชิดขอบขวา (Align Right)'",
+    target: "right",
+    know: "การชิดขวา (Align Right) ใช้กับวันที่หรือลายเซ็นท้ายเอกสาร หรือกดคีย์ลัด Ctrl + R"
+  },
+  {
+    mode: "standard_quiz",
+    q: "คีย์ลัดใดใช้สั่ง 'บันทึกเอกสารด่วน (Save)' ทันที",
+    opts: [{ txt: "Ctrl + S", ok: true }, { txt: "Ctrl + C", ok: false }, { txt: "Ctrl + V", ok: false }],
+    know: "Ctrl + S ย่อมาจาก Save ใช้สำหรับบันทึกงานป้องกันข้อมูลสูญหาย"
+  },
+  {
+    mode: "standard_quiz",
+    q: "ต้องการกู้คืนข้อความที่เผลอกดลบผิดพลาด (Undo) ต้องกดคีย์ลัดใด",
+    opts: [{ txt: "Ctrl + Z", ok: true }, { txt: "Ctrl + Y", ok: false }, { txt: "Ctrl + A", ok: false }],
+    know: "Ctrl + Z คือคำสั่ง Undo ใช้สำหรับย้อนกลับการกระทำล่าสุด"
+  }
 ];
-const POOL = { align: ["left", "center", "right", "justify"], style: ["bold", "italic", "underline"] };
-const KNOW = {
-  left: "ชิดซ้าย (Align Left) จัดข้อความให้ชิดขอบซ้ายของหน้ากระดาษ เป็นค่าเริ่มต้นของเอกสาร ปุ่มลัด Ctrl + L",
-  center: "กึ่งกลาง (Center) วางข้อความไว้ตรงกลางหน้ากระดาษ นิยมใช้กับชื่อเรื่อง ปุ่มลัด Ctrl + E",
-  right: "ชิดขวา (Align Right) จัดข้อความให้ชิดขอบขวา มักใช้กับวันที่หรือชื่อผู้เขียน ปุ่มลัด Ctrl + R",
-  justify: "เต็มสองด้าน (Justify) ทำให้ข้อความชิดทั้งขอบซ้ายและขวา ขอบจะเรียบเท่ากัน ปุ่มลัด Ctrl + J",
-  bold: "ตัวหนา (Bold) ทำให้ตัวอักษรหนาและเด่นขึ้น ใช้เน้นคำสำคัญ ปุ่มลัด Ctrl + B",
-  italic: "ตัวเอียง (Italic) ทำให้ตัวอักษรเอียง ใช้กับคำต่างประเทศหรือชื่อเฉพาะ ปุ่มลัด Ctrl + I",
-  underline: "ขีดเส้นใต้ (Underline) ขีดเส้นใต้ตัวอักษรเพื่อเน้นข้อความ ปุ่มลัด Ctrl + U"
-};
-const STAGE_KNOW = {
-  1: "Title Bar คือแถบชื่อเรื่องบนสุดของหน้าต่าง แสดงชื่อไฟล์และชื่อโปรแกรม ส่วน Status Bar อยู่ล่างสุดบอกจำนวนหน้า/คำ และ Scroll Bar ใช้เลื่อนดูเอกสาร",
-  2: "Ctrl + S คือบันทึกไฟล์ (Save) ส่วน Ctrl + C คือคัดลอก และ Ctrl + Z คือย้อนกลับ",
-  3: "Ctrl + Z คือย้อนกลับคำสั่ง (Undo) ส่วน Ctrl + Y คือทำซ้ำ (Redo) และ Ctrl + V คือวาง",
-  4: "Ctrl + B คือตัวหนา (Bold) ส่วน Ctrl + I คือตัวเอียง และ Ctrl + U คือขีดเส้นใต้",
-  5: "Ctrl + E คือจัดกึ่งกลางหน้ากระดาษ ส่วน Ctrl + L คือชิดซ้าย และ Ctrl + R คือชิดขวา",
-  6: "Bullets คือหัวข้อย่อยแบบสัญลักษณ์ ไม่มีเลขลำดับ ส่วน Numbering มีตัวเลขกำกับ และ Sort ใช้เรียงลำดับข้อมูล",
-  7: "Behind Text ส่งภาพไปอยู่หลังตัวหนังสือ ส่วน In Front of Text ภาพทับข้อความ และ Square ให้ข้อความล้อมรอบภาพ",
-  8: "Merge Cells คือรวมหลายเซลล์ในตารางให้เป็นเซลล์เดียว ส่วน Split Cells คือแยกเซลล์ออก",
-  9: "Landscape คือวางกระดาษแนวนอน ส่วน Portrait คือแนวตั้ง และ Margins คือระยะขอบกระดาษ",
-  10: "เส้นหยักสีแดงใต้คำ แปลว่าโปรแกรมตรวจพบว่าสะกดคำผิดหรือไม่รู้จักคำนั้น ส่วนเส้นสีน้ำเงินมักเป็นไวยากรณ์หรือรูปแบบ",
-  11: "Heading 1 คือสไตล์หัวข้อหลัก ใช้สร้างสารบัญอัตโนมัติได้ ส่วน Normal คือข้อความทั่วไป และ Title คือชื่อเรื่อง",
-  12: "ไฟล์ .PDF ล็อกหน้ากระดาษให้เหมือนกันทุกเครื่อง เหมาะกับการพิมพ์ ส่วน .DOCX ยังแก้ไขได้ และ .TXT เป็นข้อความล้วน"
-};
-function icon(k, type) {
-  if (type === "style") return `<b style="font:${k === "bold" ? 900 : 500} 2rem Kanit;${k === "italic" ? "font-style:italic;" : ""}${k === "underline" ? "text-decoration:underline;" : ""}">A</b>`;
-  const al = { left: "flex-start", center: "center", right: "flex-end", justify: "stretch" }[k], w = k === "justify" ? [100, 100, 100] : [100, 55, 78];
-  return `<div class="lines" style="align-items:${al}">${w.map(x => `<i style="width:${x}%"></i>`).join("")}</div>`;
+
+function buildCurrentLapMission() {
+  const m = shuf(INTERACTIVE_MISSIONS)[0];
+  return m;
 }
-function buildMissions() {
-  const fm = shuf(MISS).slice(0, TOTAL_LAPS - 1).map(m => ({
-    q: m.t, know: KNOW[m.k],
-    opts: shuf([m.k, ...shuf(POOL[m.type].filter(k => k !== m.k)).slice(0, 2)]).map(k => ({ html: icon(k, m.type), ok: k === m.k }))
-  }));
-  const st = { q: cur.quest.replace(/^พุ่งชน:\s*(ป้าย)?/, "เลือกคำตอบ: "), know: STAGE_KNOW[stageId], opts: shuf(cur.cards.map(c => ({ txt: c.text, ok: c.ok }))) };
-  return [st, ...fm];
-}
+
 function startBonus() {
-  bonusDone = true; for (const k in keys) keys[k] = false;
-  bonus = { ms: buildMissions(), i: 0, t: BONUS_SEC * 60, state: "ask", ok: false };
-  ais.forEach(a => a.won = Math.random() < a.skill);
-  $("bonus").style.display = "flex"; $("b-time").innerText = BONUS_SEC; $("b-time").classList.remove("low"); renderBonus();
+  for (const k in keys) keys[k] = false;
+  P.speed = 0; P.vx = 0; P.vz = 0;
+  
+  bonus = {
+    m: buildCurrentLapMission(),
+    t: BONUS_SEC * 60,
+    state: "play",
+    ok: false
+  };
+  
+  $("bonus").style.display = "flex";
+  $("b-time").innerText = BONUS_SEC;
+  $("b-time").classList.remove("low");
+  renderBonusUI();
 }
-function renderBonus() {
-  const b = bonus, st = b.state, m = b.ms[Math.min(b.i, b.ms.length - 1)];
+
+function renderBonusUI() {
+  const b = bonus, m = b.m, st = b.state;
   const show = (id, on, d = "block") => $(id).style.display = on ? d : "none";
-  $("b-step").innerText = st === "result" ? "สรุปผลโบนัสไทม์" : `ภารกิจที่ ${Math.min(b.i + 1, b.ms.length)} / ${b.ms.length}`;
-  show("b-task", st === "ask" || st === "know"); show("b-opts", st === "ask", "flex"); show("b-know", st === "know");
-  show("b-wait", st === "wait"); show("b-result", st === "result"); show("b-go", st === "result", "inline-block");
-  if (st === "ask" || st === "know") $("b-task").innerText = m.q;
-  if (st === "ask") $("b-opts").innerHTML = m.opts.map((o, i) => `<button class="mopt${o.txt ? " t" : ""}" data-i="${i}">${o.txt || o.html}<span>${i + 1}</span></button>`).join("");
-  if (st === "know") $("b-know-text").innerText = m.know;
-  if (st === "wait") $("b-wait").innerHTML = "🎉 ทำครบทุกภารกิจแล้ว!<br>ต้องรอให้เวลาครบก่อน รถทุกคันถึงจะออกตัวต่อ";
-  if (st === "result") {
-    const rows = [{ n: "คุณ", ok: b.ok, me: 1 }, ...ais.map(a => ({ n: a.name, ok: a.won }))];
-    $("b-result").innerHTML = `<div style="margin:10px 0;font-weight:800">${b.ok ? "คุณทำสำเร็จ ได้ N2O เต็มหลอด! ⚡" : "ทำไม่ทันเวลา ไม่ได้ N2O 😢"}</div>` +
-      rows.map(r => `<div class="rrow${r.me ? " me" : ""}">${r.n}<span class="t">${r.ok ? "ได้ N2O ⚡" : "ไม่ได้ N2O"}</span></div>`).join("");
+  
+  $("b-step").innerText = `ภารกิจจบรับรอบที่ ${P.lap} / ${TOTAL_LAPS}`;
+  $("b-task").innerText = m.q;
+  
+  show("b-workarea", st === "play" && m.mode.startsWith("action_"));
+  show("b-opts", st === "play" && m.mode === "standard_quiz", "flex");
+  show("b-know", st === "know");
+  show("b-wait", st === "done");
+  show("b-go", st === "done", "inline-block");
+
+  const work = $("b-workarea");
+  work.innerHTML = "";
+
+  if (st === "play") {
+    if (m.mode === "action_style") {
+      work.innerHTML = `
+        <div class="word-ribbon-bar">
+          <button class="tool-btn" onclick="applyInteractiveStyle('B')"><b>B</b></button>
+          <button class="tool-btn" onclick="applyInteractiveStyle('I')"><i>I</i></button>
+          <button class="tool-btn" onclick="applyInteractiveStyle('U')"><u>U</u></button>
+        </div>
+        <div class="doc-sheet" id="sample-text">เอกสารรายงาน Microsoft Word</div>
+      `;
+    } else if (m.mode === "action_align") {
+      work.innerHTML = `
+        <div class="word-ribbon-bar">
+          <button class="tool-btn" onclick="applyInteractiveAlign('left')">ชิดซ้าย</button>
+          <button class="tool-btn" onclick="applyInteractiveAlign('center')">กึ่งกลาง</button>
+          <button class="tool-btn" onclick="applyInteractiveAlign('right')">ชิดขวา</button>
+        </div>
+        <div class="doc-sheet" id="sample-text" style="text-align:left; display:block;">หัวข้อรายงาน ม.1</div>
+      `;
+    } else if (m.mode === "standard_quiz") {
+      $("b-opts").innerHTML = m.opts.map((o, i) => `
+        <button class="mopt t" onclick="submitStandardAnswer(${o.ok})">${o.txt}<span>${i + 1}</span></button>
+      `).join("");
+    }
+  }
+
+  if (st === "know") {
+    $("b-know-text").innerText = m.know;
+  }
+
+  if (st === "done") {
+    $("b-wait").innerHTML = "🎉 ภารกิจสำเร็จ! ได้รับ N2O ไนโตรบูสต์เต็มหลอด ⚡<br>พร้อมออกตัวลุยรอบต่อไปแล้ว!";
   }
 }
-function answerBonus(i) {
-  if (!bonus || bonus.state !== "ask") return;
-  const m = bonus.ms[bonus.i]; if (i < 0 || i >= m.opts.length) return;
-  if (m.opts[i].ok) { bonus.i++; if (bonus.i >= bonus.ms.length) { bonus.ok = true; bonus.state = "wait"; } }
-  else bonus.state = "know";
-  renderBonus();
+
+function applyInteractiveStyle(style) {
+  const txt = $("sample-text");
+  if (style === 'B') txt.style.fontWeight = txt.style.fontWeight === '900' ? '400' : '900';
+  if (style === 'I') txt.style.fontStyle = txt.style.fontStyle === 'italic' ? 'normal' : 'italic';
+  if (style === 'U') txt.style.textDecoration = txt.style.textDecoration === 'underline' ? 'none' : 'underline';
+
+  if (style === bonus.m.target) {
+    handleBonusSuccess();
+  } else {
+    handleBonusFail();
+  }
 }
+
+function applyInteractiveAlign(align) {
+  const txt = $("sample-text");
+  txt.style.textAlign = align;
+  if (align === bonus.m.target) {
+    handleBonusSuccess();
+  } else {
+    handleBonusFail();
+  }
+}
+
+function submitStandardAnswer(isOk) {
+  if (isOk) {
+    handleBonusSuccess();
+  } else {
+    handleBonusFail();
+  }
+}
+
+function handleBonusSuccess() {
+  bonus.ok = true;
+  bonus.state = "done";
+  P.gauge = 100; // ได้ไนโตรเต็มหลอด
+  renderBonusUI();
+}
+
+function handleBonusFail() {
+  bonus.state = "know";
+  renderBonusUI();
+}
+
 function tickBonus() {
-  if (bonus.state === "result") return;
-  bonus.t--; const sec = Math.ceil(bonus.t / 60); $("b-time").innerText = sec; $("b-time").classList.toggle("low", sec <= 10);
-  if (bonus.t <= 0) { bonus.state = "result"; if (bonus.ok) P.gauge = 100; ais.forEach(a => { if (a.won) a.n2o = 2; }); renderBonus(); }
+  if (bonus.state === "done") return;
+  bonus.t--;
+  const sec = Math.ceil(bonus.t / 60);
+  $("b-time").innerText = sec;
+  $("b-time").classList.toggle("low", sec <= 5);
+
+  if (bonus.t <= 0) {
+    bonus.state = "done";
+    renderBonusUI();
+  }
 }
+
 function bonusEnter() {
   if (!bonus) return;
-  if (bonus.state === "know") { bonus.state = "ask"; renderBonus(); }
-  else if (bonus.state === "result") { bonus = null; $("bonus").style.display = "none"; }
+  if (bonus.state === "know") {
+    bonus.state = "play";
+    renderBonusUI();
+  } else if (bonus.state === "done") {
+    bonus = null;
+    $("bonus").style.display = "none";
+    showToast("GO NEXT LAP! 🚀", "#4ade80");
+  }
 }
-$("b-opts").addEventListener("pointerdown", e => { const b = e.target.closest(".mopt"); if (b) { e.preventDefault(); answerBonus(+b.dataset.i); } });
-$("b-retry").addEventListener("click", () => { if (bonus && bonus.state === "know") { bonus.state = "ask"; renderBonus(); } });
+
+$("b-retry").addEventListener("click", () => {
+  if (bonus && bonus.state === "know") {
+    bonus.state = "play";
+    renderBonusUI();
+  }
+});
 $("b-go").addEventListener("click", bonusEnter);
 
 function drawRank() {
   const L = [{ n: "คุณ", s: P.lap * N + P.idx, me: 1 }, ...ais.map(a => ({ n: a.name, s: a.s }))].sort((a, b) => b.s - a.s);
   $("rank-list").innerHTML = L.map((r, i) => `<div class="rk${r.me ? " me" : ""}"><b>${i + 1}</b>${r.n}</div>`).join("");
 }
+
 const mm = $("minimap").getContext("2d");
 let mnx = 1e9, mnz = 1e9, mxx = -1e9, mxz = -1e9;
 pts.forEach(p => { mnx = Math.min(mnx, p.x); mxx = Math.max(mxx, p.x); mnz = Math.min(mnz, p.z); mxz = Math.max(mxz, p.z); });
 const msc = 100 / Math.max(mxx - mnx, mxz - mnz), mp = (x, z) => [10 + (x - mnx) * msc, 10 + (z - mnz) * msc];
+
 function drawMap() {
   mm.clearRect(0, 0, 120, 120); mm.beginPath();
   pts.forEach((p, i) => { const [x, z] = mp(p.x, p.z); i ? mm.lineTo(x, z) : mm.moveTo(x, z); });
