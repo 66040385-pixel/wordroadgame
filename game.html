@@ -3,42 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Word Road 3D: Mission Drive</title>
+  <title>Word Kart 3D: Race Track</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;700;800;900&family=Chakra+Petch:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=Kanit:wght@500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
     html, body { width: 100vw; height: 100vh; overflow: hidden; background: #38bdf8; position: fixed; inset: 0; font-family: 'Kanit', sans-serif; }
     #three-container { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; }
 
-    /* MISSION HUD ด้านบน */
-    #mission-hud {
+    /* MISSION BANNER HUD ด้านบน */
+    #mission-banner {
       position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px);
-      border: 3px solid #38bdf8; border-radius: 24px; padding: 10px 24px;
+      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px);
+      border: 3px solid #facc15; border-radius: 24px; padding: 10px 28px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; color: #fff; z-index: 45; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      min-width: 320px; text-align: center;
+      gap: 4px; color: #fff; z-index: 45; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      min-width: 330px; text-align: center;
     }
-    .mission-title { font-size: 0.85rem; font-weight: 800; color: #facc15; }
-    .mission-desc { font-size: 1.15rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+    .mission-badge { font-family: 'Chakra Petch'; font-size: 0.9rem; font-weight: 900; color: #facc15; }
+    .mission-target { font-size: 1.25rem; font-weight: 900; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
 
-    /* STATS */
+    /* STATS & COINS */
     #stat-hud { position: fixed; top: 16px; right: 16px; display: flex; gap: 10px; z-index: 50; }
-    .hud-chip {
-      background: rgba(15, 23, 42, 0.88); border: 2px solid rgba(255, 255, 255, 0.2);
+    .hud-pill {
+      background: rgba(15, 23, 42, 0.88); border: 2px solid rgba(255, 255, 255, 0.25);
       border-radius: 18px; padding: 6px 16px; display: flex; align-items: center; gap: 8px;
-      font-family: 'Chakra Petch'; font-size: 1.15rem; font-weight: 900; color: #fff;
+      font-family: 'Chakra Petch'; font-size: 1.2rem; font-weight: 900; color: #fff;
     }
 
+    /* SPEEDOMETER & NITRO ALERT */
     #speedo-box {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column; align-items: center; z-index: 50; pointer-events: none;
     }
-    .speed-number { font-family: 'Chakra Petch'; font-size: 2.8rem; font-weight: 900; color: #facc15; line-height: 1; }
-    .vehicle-tag { font-family: 'Chakra Petch'; font-weight: 800; font-size: 0.85rem; color: #38bdf8; }
+    .speed-number {
+      font-family: 'Chakra Petch'; font-size: 3.2rem; font-weight: 900;
+      color: #facc15; line-height: 1; text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+    }
+    .vehicle-tag { font-family: 'Chakra Petch'; font-weight: 900; font-size: 0.95rem; color: #38bdf8; }
+    .nitro-boost-text {
+      font-family: 'Chakra Petch'; font-weight: 900; font-size: 1.1rem; color: #ef4444;
+      animation: flash 0.3s infinite alternate; display: none;
+    }
+    @keyframes flash { from { transform: scale(0.95); opacity: 0.7; } to { transform: scale(1.1); opacity: 1; } }
 
     /* TOUCH CONTROLS */
     #mobile-controls {
@@ -50,26 +59,34 @@
     .v-btn {
       width: 76px; height: 76px; border-radius: 24px; background: rgba(15, 23, 42, 0.82);
       border: 3px solid rgba(255, 255, 255, 0.3); display: flex; justify-content: center;
-      align-items: center; cursor: pointer;
+      align-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
-    .v-btn:active { transform: scale(0.9); background: rgba(56, 189, 248, 0.4); }
+    .v-btn:active { transform: scale(0.9); background: rgba(56, 189, 248, 0.4); border-color: #38bdf8; }
     .v-btn svg { width: 36px; height: 36px; fill: #ffffff; }
 
-    #toast {
+    /* IMPACT TOAST */
+    #toast-msg {
       position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-      font-family: 'Chakra Petch'; font-size: 2.2rem; font-weight: 900;
+      font-family: 'Chakra Petch'; font-size: 2.5rem; font-weight: 900;
       color: #4ade80; text-shadow: 0 0 20px #22c55e, 0 4px 0 #000;
       pointer-events: none; z-index: 100; opacity: 0; transition: all 0.25s;
     }
 
-    /* VICTORY MODAL */
+    /* VICTORY & EVOLUTION POPUP */
     #victory-modal {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(14px);
       display: none; justify-content: center; align-items: center; padding: 18px; z-index: 200;
     }
-    .victory-card {
-      background: #ffffff; border: 4px solid #10b981; border-radius: 28px; padding: 26px;
-      max-width: 440px; width: 100%; text-align: center; box-shadow: 0 10px 0 #047857;
+    .victory-box {
+      background: #0f172a; border: 4px solid #facc15; border-radius: 32px;
+      padding: 30px; max-width: 460px; width: 100%; text-align: center;
+      box-shadow: 0 0 50px rgba(250, 204, 21, 0.4); color: #fff;
+    }
+    .btn-upgrade {
+      width: 100%; padding: 16px; border-radius: 18px; border: none;
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #fff; font-family: 'Chakra Petch'; font-size: 1.25rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 6px 0 #047857; margin-top: 18px;
     }
   </style>
 </head>
@@ -77,14 +94,14 @@
 
   <div id="three-container"></div>
 
-  <!-- HUD -->
-  <div id="mission-hud">
-    <div class="mission-title" id="m-stage">🎯 ด่านที่ 1: ขับจักรยาน</div>
-    <div class="mission-desc" id="m-text">ซิ่งพุ่งชน: ป้ายชื่อเรื่องเอกสาร [Title Bar]</div>
+  <!-- MISSION HUD -->
+  <div id="mission-banner">
+    <div class="mission-badge" id="m-stage-badge">STAGE 1: BICYCLE DELIVERY</div>
+    <div class="mission-target" id="m-quest-text">ซิ่งพุ่งชน: ป้ายบันทึกเอกสาร [Ctrl + S]</div>
   </div>
 
   <div id="stat-hud">
-    <div class="hud-chip" style="border-color:#f59e0b; color:#fde047;">
+    <div class="hud-pill" style="border-color:#f59e0b; color:#fde047;">
       <span>🪙</span>
       <span id="stat-coins">0</span>
     </div>
@@ -93,11 +110,12 @@
   <div id="speedo-box">
     <div class="speed-number" id="speed-val">0</div>
     <div class="vehicle-tag" id="vehicle-val">🚲 BICYCLE</div>
+    <div class="nitro-boost-text" id="nitro-alert">⚡ NITRO BOOST! ⚡</div>
   </div>
 
-  <div id="toast">PERFECT HIT! 🎉</div>
+  <div id="toast-msg">PERFECT HIT! ⚡</div>
 
-  <!-- CONTROLS -->
+  <!-- TOUCH CONTROLS -->
   <div id="mobile-controls">
     <div class="pad-cluster">
       <div class="v-btn" id="btn-left"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></div>
@@ -105,65 +123,66 @@
     </div>
     <div class="pad-cluster">
       <div class="v-btn" id="btn-down" style="border-color:#ef4444;"><svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg></div>
-      <div class="v-btn" id="btn-up" style="border-color:#10b981; width:80px; height:80px;"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
+      <div class="v-btn" id="btn-up" style="border-color:#10b981; width:82px; height:82px;"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
     </div>
   </div>
 
   <!-- VICTORY POPUP -->
   <div id="victory-modal">
-    <div class="victory-card">
-      <div style="font-size:3.5rem;" id="reward-icon">🛵</div>
-      <h2 style="font-family:'Chakra Petch'; font-size:1.8rem; color:#10b981; margin:8px 0;">ภารกิจสำเร็จ!</h2>
-      <p style="color:#64748b; font-weight:700;" id="reward-desc">คุณปลดล็อกยานพาหนะคันใหม่สำหรับด่านถัดไปแล้ว!</p>
-      <div style="margin:16px 0; font-size:1.3rem; font-weight:900; color:#b45309;">+100 Coins 🪙</div>
-      <button style="width:100%; padding:14px; border-radius:16px; border:none; background:#10b981; color:#fff; font-family:'Chakra Petch'; font-size:1.2rem; font-weight:900; cursor:pointer;" onclick="returnToHub()">กลับหน้าเลือกด่าน</button>
+    <div class="victory-box">
+      <div style="font-size:4rem;" id="reward-ico">🛵</div>
+      <h2 style="font-family:'Chakra Petch'; font-size:2rem; color:#facc15; margin:10px 0;">STAGE CLEAR!</h2>
+      <p style="color:#94a3b8; font-size:1.05rem;" id="reward-text">ยินดีด้วย! คุณปลดล็อกรถคันใหม่สำหรับด่านต่อไปแล้ว</p>
+      <div style="margin:16px 0; font-size:1.4rem; font-weight:900; color:#4ade80;">+100 Coins 🪙</div>
+      <button class="btn-upgrade" onclick="goNext()">ขับรถคันใหม่สู่ด่านต่อไป 🚀</button>
     </div>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const stageId = parseInt(urlParams.get('stage')) || 1;
+    let stageId = parseInt(urlParams.get('stage')) || 1;
 
-    // ข้อมูลด่านและเป้าหมายของแต่ละด่าน
-    const stageDatabase = {
+    // ระบบวิวัฒนาการยานพาหนะตามด่าน[cite: 8]
+    const stageData = {
       1: {
-        vType: "bicycle", vName: "🚲 BICYCLE (จักรยาน)",
-        prompt: "พุ่งชน: ป้ายบอกชื่อไฟล์เอกสาร [Title Bar]",
-        target: "Title Bar",
-        cards: [{ text: "Title Bar", ok: true, lane: 0 }, { text: "Status Bar", ok: false, lane: -8 }, { text: "Scroll Bar", ok: false, lane: 8 }],
-        unlockText: "คุณปลดล็อก มอเตอร์ไซค์ 🛵 สำหรับด่าน 2 แล้ว!",
-        rewardIco: "🛵"
+        type: "bicycle", name: "🚲 BICYCLE (จักรยานเสือหมอบ)",
+        badge: "STAGE 1: BICYCLE DELIVERY",
+        quest: "ซิ่งพุ่งชน: ป้ายบันทึกงาน [Save]",
+        target: "Ctrl + S",
+        cards: [{ text: "Ctrl + S", ok: true, lane: 0 }, { text: "Ctrl + C", ok: false, lane: -8 }, { text: "Ctrl + Z", ok: false, lane: 8 }],
+        nextIco: "🛵", nextText: "ปลดล็อก: มอเตอร์ไซค์สกู๊ตเตอร์ (Scooter) ในด่าน 2!"
       },
       2: {
-        vType: "scooter", vName: "🛵 SCOOTER (มอเตอร์ไซค์)",
-        prompt: "พุ่งชน: ป้ายบันทึกเอกสารด่วน [Save]",
-        target: "Ctrl + S",
-        cards: [{ text: "Ctrl + S", ok: true, lane: 8 }, { text: "Ctrl + C", ok: false, lane: -8 }, { text: "Ctrl + Z", ok: false, lane: 0 }],
-        unlockText: "คุณปลดล็อก รถเก๋ง 🚗 สำหรับด่าน 3 แล้ว!",
-        rewardIco: "🚗"
+        type: "scooter", name: "🛵 SCOOTER (มอเตอร์ไซค์ส่งของ)",
+        badge: "STAGE 2: SCOOTER DASH",
+        quest: "ซิ่งพุ่งชน: ป้ายทำตัวอักษรหนา [Bold]",
+        target: "Ctrl + B",
+        cards: [{ text: "Ctrl + B", ok: true, lane: 8 }, { text: "Ctrl + I", ok: false, lane: -8 }, { text: "Ctrl + U", ok: false, lane: 0 }],
+        nextIco: "🏎️", nextText: "ปลดล็อก: สปอร์ตโกคาร์ต (Kart Pro) ในด่าน 3!"
       },
       3: {
-        vType: "car", vName: "🚗 CITY CAR (รถเก๋ง)",
-        prompt: "พุ่งชน: ป้ายย้อนกลับคำสั่ง [Undo]",
+        type: "kart", name: "🏎️ KART PRO (สปอร์ตโกคาร์ต)",
+        badge: "STAGE 3: GRAND PRIX",
+        quest: "ซิ่งพุ่งชน: ป้ายยกเลิกคำสั่งล่าสุด [Undo]",
         target: "Ctrl + Z",
-        cards: [{ text: "Ctrl + Z", ok: true, lane: -8 }, { text: "Ctrl + Y", ok: false, lane: 0 }, { text: "Ctrl + V", ok: false, lane: 8 }],
-        unlockText: "คุณปลดล็อก รถกระบะ 🛻 สำหรับด่าน 4 แล้ว!",
-        rewardIco: "🛻"
+        cards: [{ text: "Ctrl + Z", ok: true, lane: -8 }, { text: "Ctrl + Y", ok: false, lane: 0 }, { text: "Ctrl + A", ok: false, lane: 8 }],
+        nextIco: "👑", nextText: "ยินดีด้วย! คุณพิชิตตำแหน่งยอดนักซิ่ง Word Champion!"
       }
     };
 
-    const currentStageData = stageDatabase[stageId] || stageDatabase[1];
+    const cur = stageData[stageId] || stageData[1];
 
     let scene, camera, renderer, vehicleGroup;
-    let coins = [], targetSigns = [];
-    let coinCount = 0, keys = { up: false, down: false, left: false, right: false };
+    let coins = [], signs = [];
+    let coinScore = 0, isCleared = false;
+    let keys = { up: false, down: false, left: false, right: false };
 
-    // ฟิสิกส์การขับ (จักรยานจะขี่เบาและคล่องตัว / รถยนต์จะเร็วขึ้น)
     let physics = {
       x: 0, z: 0, angle: 0, speed: 0,
-      maxSpeed: stageId === 1 ? 1.2 : 1.6,
-      accel: stageId === 1 ? 0.03 : 0.045,
-      friction: 0.015, turnSpeed: 0.042
+      baseMax: stageId === 1 ? 1.3 : (stageId === 2 ? 1.7 : 2.2),
+      accel: stageId === 1 ? 0.03 : 0.05,
+      friction: 0.015, turnSpeed: 0.045,
+      boostTimer: 0
     };
 
     function init() {
@@ -178,40 +197,52 @@
 
       const hemi = new THREE.HemisphereLight(0xffffff, 0x334155, 0.95);
       scene.add(hemi);
-      const sun = new THREE.DirectionalLight(0xfffbeb, 0.85);
+      const sun = new THREE.DirectionalLight(0xfffbeb, 0.9);
       sun.position.set(50, 100, 50);
       scene.add(sun);
 
       buildTrack();
-      buildVehicle(currentStageData.vType);
-      buildItems();
-      setupInput();
+      buildVehicleModel(cur.type);
+      buildCoinsAndTargets();
+      setupInputs();
 
-      document.getElementById("m-stage").innerText = `🎯 ด่านที่ ${stageId}: ${currentStageData.vName}`;
-      document.getElementById("m-text").innerText = currentStageData.prompt;
-      document.getElementById("vehicle-val").innerText = currentStageData.vName;
+      document.getElementById("m-stage-badge").innerText = cur.badge;
+      document.getElementById("m-quest-text").innerText = cur.quest;
+      document.getElementById("vehicle-val").innerText = cur.name;
 
       animate();
     }
 
     function buildTrack() {
-      const grassGeo = new THREE.PlaneGeometry(500, 1500);
+      const grassGeo = new THREE.PlaneGeometry(500, 1600);
       const grassMat = new THREE.MeshLambertMaterial({ color: 0x22c55e });
       const grass = new THREE.Mesh(grassGeo, grassMat);
       grass.rotation.x = -Math.PI / 2;
       grass.position.z = -500;
       scene.add(grass);
 
-      const roadGeo = new THREE.PlaneGeometry(32, 1400);
+      const roadGeo = new THREE.PlaneGeometry(32, 1500);
       const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
       const road = new THREE.Mesh(roadGeo, roadMat);
       road.rotation.x = -Math.PI / 2;
       road.position.set(0, 0.05, -500);
       scene.add(road);
+
+      // เส้นแบ่งเลนสีเหลือง
+      for (let z = 50; z > -1000; z -= 14) {
+        const line = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 6), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+        line.rotation.x = -Math.PI / 2;
+        line.position.set(-5.5, 0.08, z);
+        scene.add(line);
+
+        const line2 = line.clone();
+        line2.position.x = 5.5;
+        scene.add(line2);
+      }
     }
 
-    // สร้างโมเดล 3D ตามประเภทยานพาหนะ
-    function buildVehicle(type) {
+    // สร้างโมเดลตามยานพาหนะ (จักรยาน / มอเตอร์ไซค์ / โกคาร์ต)
+    function buildVehicleModel(type) {
       vehicleGroup = new THREE.Group();
 
       if (type === "bicycle") {
@@ -219,44 +250,64 @@
         const frameMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
         const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
 
-        // โครงตัวถังจักรยาน
-        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.2, 3.2), frameMat);
-        frame.position.y = 1.2;
+        // โครงจักรยาน
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.3, 3.4), frameMat);
+        frame.position.y = 1.3;
         vehicleGroup.add(frame);
 
-        // ล้อหน้าและล้อหลัง
-        const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 16);
-        const wFront = new THREE.Mesh(wheelGeo, wheelMat);
-        wFront.rotation.z = Math.PI / 2;
-        wFront.position.set(0, 0.8, -1.4);
-        vehicleGroup.add(wFront);
+        // ล้อหน้า-ล้อหลัง
+        const wheelGeo = new THREE.CylinderGeometry(0.85, 0.85, 0.22, 16);
+        const w1 = new THREE.Mesh(wheelGeo, wheelMat);
+        w1.rotation.z = Math.PI / 2;
+        w1.position.set(0, 0.85, -1.4);
+        vehicleGroup.add(w1);
 
-        const wBack = wFront.clone();
-        wBack.position.set(0, 0.8, 1.4);
-        vehicleGroup.add(wBack);
+        const w2 = w1.clone();
+        w2.position.set(0, 0.85, 1.4);
+        vehicleGroup.add(w2);
 
         // แฮนด์จับ
-        const handle = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.15, 0.2), new THREE.MeshLambertMaterial({ color: 0xfacc15 }));
-        handle.position.set(0, 2.0, -1.1);
+        const handle = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 0.2), new THREE.MeshLambertMaterial({ color: 0xfacc15 }));
+        handle.position.set(0, 2.1, -1.1);
         vehicleGroup.add(handle);
 
-      } else {
-        // โมเดลรถยนต์/มอเตอร์ไซค์
-        const carMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
-        const body = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.2, 6.5), carMat);
-        body.position.y = 0.9;
+      } else if (type === "scooter") {
+        // โมเดลสกู๊ตเตอร์/มอเตอร์ไซค์ (Scooter 🛵)
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 4.2), new THREE.MeshLambertMaterial({ color: 0xef4444 }));
+        body.position.y = 1.0;
         vehicleGroup.add(body);
+
+        const wheelGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.4, 16);
+        const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
+        const w1 = new THREE.Mesh(wheelGeo, wheelMat);
+        w1.rotation.z = Math.PI / 2;
+        w1.position.set(0, 0.7, -1.6);
+        vehicleGroup.add(w1);
+
+        const w2 = w1.clone();
+        w2.position.set(0, 0.7, 1.6);
+        vehicleGroup.add(w2);
+
+      } else {
+        // โมเดลสปอร์ตโกคาร์ต (Kart Pro 🏎️)
+        const kartBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 6.5), new THREE.MeshLambertMaterial({ color: 0xf59e0b }));
+        kartBody.position.y = 0.8;
+        vehicleGroup.add(kartBody);
+
+        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 0.8), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+        spoiler.position.set(0, 1.8, 2.7);
+        vehicleGroup.add(spoiler);
       }
 
       scene.add(vehicleGroup);
     }
 
-    function createSign(text, isTarget) {
+    function createSignBoard(text, ok) {
       const canvas = document.createElement("canvas");
       canvas.width = 256; canvas.height = 128;
       const ctx = canvas.getContext("2d");
-      ctx.fillStyle = isTarget ? "#059669" : "#dc2626";
-      ctx.roundRect(0, 0, 256, 128, 18);
+      ctx.fillStyle = ok ? "#059669" : "#dc2626";
+      ctx.roundRect(0, 0, 256, 128, 20);
       ctx.fill();
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 6; ctx.stroke();
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 32px Kanit";
@@ -268,9 +319,9 @@
       return new THREE.Mesh(new THREE.PlaneGeometry(6.5, 3.5), mat);
     }
 
-    function buildItems() {
-      // เหรียญทองระหว่างทาง
-      for (let z = -30; z > -400; z -= 30) {
+    function buildCoinsAndTargets() {
+      // เหรียญทองวางกระจายตามทาง
+      for (let z = -30; z > -420; z -= 30) {
         const lane = [-8, 0, 8][Math.floor(Math.random() * 3)];
         const coin = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.25, 16), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
         coin.rotation.x = Math.PI / 2;
@@ -279,16 +330,16 @@
         coins.push({ mesh: coin, x: lane, z: z, hit: false });
       }
 
-      // ป้ายภารกิจ 3 ป้ายตั้งอยู่ที่ระยะ -450 เมตร
-      currentStageData.cards.forEach(c => {
-        const sign = createSign(c.text, c.ok);
-        sign.position.set(c.lane, 2.2, -450);
+      // ป้ายภารกิจ 3 ป้ายตั้งอยู่ที่ระยะ -460 เมตร
+      cur.cards.forEach(c => {
+        const sign = createSignBoard(c.text, c.ok);
+        sign.position.set(c.lane, 2.3, -460);
         scene.add(sign);
-        targetSigns.push({ mesh: sign, x: c.lane, z: -450, ok: c.ok, hit: false });
+        signs.push({ mesh: sign, x: c.lane, z: -460, ok: c.ok, hit: false });
       });
     }
 
-    function setupInput() {
+    function setupInputs() {
       window.addEventListener("keydown", e => {
         const k = e.key.toLowerCase();
         if (k === "arrowup" || k === "w") keys.up = true;
@@ -313,19 +364,31 @@
     }
 
     function showToast(text, color) {
-      const t = document.getElementById("toast");
+      const t = document.getElementById("toast-msg");
       t.innerText = text; t.style.color = color; t.style.opacity = "1";
       setTimeout(() => { t.style.opacity = "0"; }, 750);
     }
 
     function update() {
+      if (isCleared) return;
+
+      // ระบบเร่งเทอร์โบไนตรัส
+      let curMax = physics.baseMax;
+      if (physics.boostTimer > 0) {
+        physics.boostTimer--;
+        curMax *= 1.45;
+        document.getElementById("nitro-alert").style.display = "block";
+      } else {
+        document.getElementById("nitro-alert").style.display = "none";
+      }
+
       if (keys.up) physics.speed += physics.accel;
       else if (keys.down) physics.speed -= physics.accel * 1.5;
       else {
         if (physics.speed > 0) physics.speed = Math.max(0, physics.speed - physics.friction);
         if (physics.speed < 0) physics.speed = Math.min(0, physics.speed + physics.friction);
       }
-      physics.speed = Math.max(-0.3, Math.min(physics.speed, physics.maxSpeed));
+      physics.speed = Math.max(-0.3, Math.min(physics.speed, curMax));
 
       if (physics.speed !== 0) {
         const dir = physics.speed > 0 ? 1 : -1;
@@ -337,28 +400,29 @@
       physics.z -= Math.cos(physics.angle) * physics.speed;
       physics.x = Math.max(-13, Math.min(13, physics.x));
 
-      // ชนเก็บเหรียญ
+      // 1. เก็บเหรียญ
       coins.forEach(c => {
         if (!c.hit && Math.hypot(physics.x - c.x, physics.z - c.z) < 2.5) {
           c.hit = true;
           scene.remove(c.mesh);
-          coinCount += 10;
-          document.getElementById("stat-coins").innerText = coinCount;
+          coinScore += 10;
+          document.getElementById("stat-coins").innerText = coinScore;
         }
       });
 
-      // ชนป้ายภารกิจ
-      targetSigns.forEach(s => {
+      // 2. พุ่งชนป้ายคำตอบ
+      signs.forEach(s => {
         if (!s.hit && Math.hypot(physics.x - s.x, physics.z - s.z) < 3.2) {
           s.hit = true;
           scene.remove(s.mesh);
 
           if (s.ok) {
-            showToast("PERFECT HIT! 🎉", "#4ade80");
-            completeMission();
+            physics.boostTimer = 80;
+            showToast("PERFECT HIT! ⚡ NITRO BOOST", "#4ade80");
+            setTimeout(completeStage, 1000);
           } else {
-            showToast("WRONG! ลองใหม่", "#ef4444");
-            physics.speed *= 0.3;
+            showToast("WRONG TARGET! 💥", "#ef4444");
+            physics.speed *= 0.35;
           }
         }
       });
@@ -367,28 +431,28 @@
       vehicleGroup.rotation.y = physics.angle;
 
       camera.position.set(physics.x, 5.5, physics.z + 13.0);
-      camera.lookAt(physics.x, 1.5, physics.z - 8.0);
+      camera.lookAt(physics.x, 1.6, physics.z - 8.0);
 
-      document.getElementById("speed-val").innerText = Math.round(Math.abs(physics.speed) * 60);
+      document.getElementById("speed-val").innerText = Math.round(Math.abs(physics.speed) * 65);
     }
 
-    function completeMission() {
-      // เซฟข้อมูลปลดล็อกด่านถัดไป
+    function completeStage() {
+      isCleared = true;
       try {
-        const data = localStorage.getItem("word_road_player_save");
-        let user = data ? JSON.parse(data) : { coins: 0, unlockedUnit: 1 };
-        user.coins += (coinCount + 100);
-        if (user.unlockedUnit <= stageId) user.unlockedUnit = stageId + 1;
-        localStorage.setItem("word_road_player_save", JSON.stringify(user));
+        const saved = localStorage.getItem("word_kart_save");
+        let p = saved ? JSON.parse(saved) : { coins: 0, stage: 1 };
+        p.coins += (coinScore + 100);
+        if (p.stage <= stageId) p.stage = stageId + 1;
+        localStorage.setItem("word_kart_save", JSON.stringify(p));
       } catch(e){}
 
-      document.getElementById("reward-icon").innerText = currentStageData.rewardIco;
-      document.getElementById("reward-desc").innerText = currentStageData.unlockText;
+      document.getElementById("reward-ico").innerText = cur.nextIco;
+      document.getElementById("reward-text").innerText = cur.nextText;
       document.getElementById("victory-modal").style.display = "flex";
     }
 
-    function returnToHub() {
-      window.location.href = "index.html";
+    function goNext() {
+      window.location.href = `index.html`;
     }
 
     function animate() {
