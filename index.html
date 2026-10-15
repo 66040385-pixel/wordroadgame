@@ -3,23 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Word Road: Arcade Hub & Garage</title>
+  <title>Word Road 3D: Mission Select Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;0,800;1,700&family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800;900&family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --word-blue-dark: #1e40af;
       --word-blue-main: #1d4ed8;
-      --arcade-gold: #f59e0b;
-      --arcade-yellow: #facc15;
-      --arcade-green: #10b981;
-      --arcade-red: #ef4444;
       --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
       --text-main: #0f172a;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
     body {
       min-height: 100vh; background: var(--bg-gradient); font-family: 'Kanit', sans-serif;
@@ -32,7 +26,6 @@
                   linear-gradient(to bottom, rgba(2, 132, 199, 0.12) 2px, transparent 2px);
       background-size: 32px 32px; pointer-events: none; z-index: 0;
     }
-    .svg-icon { width: 22px; height: 22px; fill: currentColor; display: inline-block; vertical-align: middle; }
 
     /* AUTH */
     #auth-screen {
@@ -50,8 +43,7 @@
     }
     .bright-input {
       width: 100%; padding: 13px 16px; border-radius: 14px; border: 3px solid #bae6fd;
-      background: #f8fafc; font-family: 'Kanit'; font-size: 1rem; font-weight: 700; margin-bottom: 12px;
-      outline: none;
+      background: #f8fafc; font-family: 'Kanit'; font-size: 1rem; font-weight: 700; margin-bottom: 12px; outline: none;
     }
     .btn-green-3d {
       width: 100%; padding: 14px; border-radius: 16px; border: none;
@@ -75,26 +67,21 @@
       box-shadow: 0 3px 0 #d97706;
     }
 
-    .banner-garage-group {
-      display: grid; grid-template-columns: 2fr 1fr; gap: 14px;
-    }
+    .banner-garage-group { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
     .hero-banner {
       background: #ffffff; border: 3px solid var(--word-blue-main); border-radius: 22px;
-      padding: 20px 24px; box-shadow: 0 6px 0 var(--word-blue-dark); display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; box-shadow: 0 6px 0 var(--word-blue-dark); display: flex; align-items: center;
     }
     .garage-btn-card {
       background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid #facc15;
-      border-radius: 22px; padding: 18px; color: #fff; text-align: center; cursor: pointer;
-      box-shadow: 0 6px 0 #b45309; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
-      transition: 0.1s;
+      border-radius: 22px; padding: 18px; color: #fff; text-align: center;
+      box-shadow: 0 6px 0 #b45309; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
     }
-    .garage-btn-card:active { transform: translateY(3px); box-shadow: 0 2px 0 #b45309; }
 
     .units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
     .unit-card {
       background: #ffffff; border: 3px solid #bae6fd; border-radius: 20px; padding: 18px;
-      display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
-      box-shadow: 0 6px 0 #7dd3fc;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 14px; box-shadow: 0 6px 0 #7dd3fc;
     }
     .unit-card.completed { border-color: #10b981; background: #f0fdf4; box-shadow: 0 6px 0 #047857; }
     .unit-card.locked { opacity: 0.6; background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 6px 0 #94a3b8; }
@@ -107,59 +94,22 @@
     }
     .btn-challenge:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e3a8a; }
 
-    /* GARAGE MODAL */
-    #garage-modal {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
-      display: none; justify-content: center; align-items: center; padding: 16px; z-index: 300;
-    }
-    .garage-box {
-      background: #ffffff; border: 4px solid #facc15; border-radius: 28px;
-      padding: 26px; max-width: 650px; width: 100%; box-shadow: 0 10px 0 #b45309;
-    }
-    .cars-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin: 18px 0; }
-    .car-card {
-      background: #f8fafc; border: 3px solid #cbd5e1; border-radius: 16px; padding: 12px 8px;
-      text-align: center; cursor: pointer; transition: 0.15s;
-    }
-    .car-card.selected { border-color: #0284c7; background: #e0f2fe; box-shadow: 0 4px 0 #0284c7; }
-    .car-card.locked { opacity: 0.5; cursor: not-allowed; }
-
-    /* QUIZ MODAL */
-    #quiz-modal {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px);
-      display: none; justify-content: center; align-items: center; padding: 16px; z-index: 400;
-    }
-    .quiz-box {
-      background: #ffffff; border: 4px solid var(--word-blue-main); border-radius: 28px;
-      padding: 24px; max-width: 580px; width: 100%; box-shadow: 0 10px 0 var(--word-blue-dark);
-    }
-    .quiz-options { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
-    .btn-opt {
-      padding: 14px 18px; border-radius: 14px; border: 2px solid #bae6fd;
-      background: #f8fafc; font-family: 'Kanit'; font-size: 1rem; font-weight: 700;
-      cursor: pointer; text-align: left; transition: 0.1s; box-shadow: 0 4px 0 #7dd3fc;
-    }
-    .btn-opt:hover { background: #e0f2fe; border-color: var(--word-blue-main); }
-    .btn-opt:active { transform: translateY(2px); box-shadow: 0 1px 0 #7dd3fc; }
-
-    @media (max-width: 640px) {
-      .banner-garage-group { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 640px) { .banner-garage-group { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-  <!-- AUTH -->
+  <!-- 1. AUTH SCREEN -->
   <div id="auth-screen">
     <div class="arcade-auth-card">
       <div class="brand-logo">WORD ROAD 3D</div>
-      <p style="color:#64748b; font-weight:700; margin-bottom:16px;">เข้าสู่ระบบเพื่อสะสมเหรียญและแต่งรถ</p>
+      <p style="color:#64748b; font-weight:700; margin-bottom:16px;">เข้าสู่ระบบเพื่อเริ่มขับจักรยานด่านแรก</p>
       <input type="text" id="auth-name" class="bright-input" placeholder="พิมพ์ชื่อผู้เล่น..." />
       <button class="btn-green-3d" onclick="login()">เข้าโรงรถ & เริ่มซิ่ง</button>
     </div>
   </div>
 
-  <!-- HUB -->
+  <!-- 2. HUB SCREEN -->
   <div id="hub-screen">
     <div class="hub-navbar">
       <div style="font-weight:900; font-size:1.15rem; color:var(--word-blue-main);" id="user-display">ผู้เล่น: -</div>
@@ -173,94 +123,46 @@
       <div class="hero-banner">
         <div>
           <h2 style="font-family:'Chakra Petch'; font-size:1.6rem; color:var(--word-blue-main);">ภารกิจซิ่งพิชิต WORD ม.1</h2>
-          <p style="color:#64748b; font-weight:700; font-size:0.9rem;">ตอบคำถามผ่านด่านเพื่อรับเหรียญและปลดล็อกสกินรถใหม่!</p>
+          <p style="color:#64748b; font-weight:700; font-size:0.9rem;">ขับจักรยานทำภารกิจด่าน 1 เพื่อปลดล็อกรถคันใหม่ในด่านถัดไป!</p>
         </div>
       </div>
-      <div class="garage-btn-card" onclick="openGarage()">
-        <span style="font-size:1.8rem;">🚗</span>
-        <div style="font-family:'Chakra Petch'; font-weight:900; font-size:1.1rem; color:#facc15;">โรงรถ (GARAGE)</div>
-        <div style="font-size:0.75rem; color:#cbd5e1;" id="active-skin-name">สกิน: Taxi Yellow</div>
+      <div class="garage-btn-card">
+        <span style="font-size:2rem;" id="current-vehicle-icon">🚲</span>
+        <div style="font-family:'Chakra Petch'; font-weight:900; font-size:1.05rem; color:#facc15;">ยานพาหนะปัจจุบัน</div>
+        <div style="font-size:0.8rem; color:#cbd5e1;" id="current-vehicle-name">จักรยานเสือหมอบ</div>
       </div>
     </div>
 
     <!-- 12 Units -->
     <div class="units-grid" id="units-container"></div>
-
-    <!-- Final Boss Button -->
-    <div style="background:linear-gradient(135deg, #0f172a, #1e1b4b); border:4px solid #facc15; border-radius:22px; padding:20px; color:#fff; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; box-shadow:0 8px 0 #b45309;">
-      <div>
-        <div style="font-family:'Chakra Petch'; font-size:1.3rem; font-weight:900; color:#facc15;">🏁 GRAND PRIX 3D CIRCUIT (20 ข้อ)</div>
-        <div style="font-size:0.85rem; color:#cbd5e1;">สนามแข่งรถ 3D เต็มรูปแบบ ขับเก็บเหรียญและพิชิตม่านเลเซอร์</div>
-      </div>
-      <button class="btn-green-3d" style="width:auto; padding:12px 24px;" onclick="window.location.href='game.html'">เข้าสู่สนามแข่ง 3D</button>
-    </div>
-  </div>
-
-  <!-- GARAGE MODAL -->
-  <div id="garage-modal">
-    <div class="garage-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #cbd5e1; padding-bottom:10px;">
-        <h3 style="font-family:'Chakra Petch'; font-size:1.4rem; color:var(--word-blue-main);">อู่แต่งรถ (GARAGE)</h3>
-        <button style="padding:6px 14px; border-radius:10px; border:none; background:#ef4444; color:#fff; font-weight:800; cursor:pointer;" onclick="closeGarage()">ปิด</button>
-      </div>
-      <div class="cars-list" id="cars-grid"></div>
-      <p style="font-size:0.85rem; color:#64748b; text-align:center;">สกินรถคันใหม่จะปลดล็อกอัตโนมัติเมื่อผ่านด่านที่กำหนด!</p>
-    </div>
-  </div>
-
-  <!-- QUIZ MODAL -->
-  <div id="quiz-modal">
-    <div class="quiz-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #bae6fd; padding-bottom:8px;">
-        <span style="font-family:'Chakra Petch'; font-weight:800; color:var(--word-blue-main);" id="quiz-tag">ภารกิจบทที่ 1</span>
-        <span style="background:#fef3c7; color:#b45309; font-weight:800; font-size:0.85rem; padding:4px 10px; border-radius:10px;">+50 Coins</span>
-      </div>
-      <div style="font-size:1.15rem; font-weight:800; margin:16px 0;" id="quiz-question-text">โจทย์คำถาม...</div>
-      <div class="quiz-options" id="quiz-options-box"></div>
-    </div>
   </div>
 
   <script>
-    const skinsDB = [
-      { id: "taxi", name: "Taxi Yellow", color: 0xfacc15, unlockUnit: 1, icon: "🚕" },
-      { id: "cyber", name: "Cyber Blue", color: 0x0284c7, unlockUnit: 4, icon: "🏎️" },
-      { id: "neon", name: "Neon Green", color: 0x10b981, unlockUnit: 7, icon: "⚡" },
-      { id: "flame", name: "Flame Red", color: 0xef4444, unlockUnit: 10, icon: "🔥" },
-      { id: "gold", name: "Gold Legend", color: 0xffd700, unlockUnit: 13, icon: "👑" }
-    ];
-
-    const unitsList = [
-      { id: 1, title: "บทที่ 1: ส่วนประกอบ Microsoft Word" },
-      { id: 2, title: "บทที่ 2: การจัดการไฟล์และคีย์ลัด" },
-      { id: 3, title: "บทที่ 3: พิมพ์และจัดการข้อความ" },
-      { id: 4, title: "บทที่ 4: ตกแต่งฟอนต์และสไตล์" },
-      { id: 5, title: "บทที่ 5: จัดแนวย่อหน้าและบรรทัด" },
-      { id: 6, title: "บทที่ 6: หัวข้อย่อยและลำดับเลข" },
-      { id: 7, title: "บทที่ 7: แทรกรูปภาพ & Wrap Text" },
-      { id: 8, title: "บทที่ 8: สร้างและแต่งตาราง" },
-      { id: 9, title: "บทที่ 9: ตั้งค่าหน้ากระดาษ A4" },
-      { id: 10, title: "บทที่ 10: ตรวจสะกดและแทนที่คำ" },
-      { id: 11, title: "บทที่ 11: Style และสารบัญอัตโนมัติ" },
-      { id: 12, title: "บทที่ 12: ส่งออกไฟล์ PDF & สั่งพิมพ์" }
-    ];
-
-    // คำถามกระชับฉับไว ได้เหรียญทันที
-    const quickQuizzes = {
-      1: { q: "แถบด้านบนสุดที่บอกชื่อเอกสารและชื่อโปรแกรม เรียกว่าแถบใด?", target: "Title Bar", opts: ["Title Bar", "Status Bar", "Ribbon Bar", "Scroll Bar"] },
-      2: { q: "คีย์ลัดใดใช้สั่ง 'บันทึกเอกสารด่วน (Save)' ทันที?", target: "Ctrl + S", opts: ["Ctrl + C", "Ctrl + S", "Ctrl + Z", "Ctrl + V"] },
-      3: { q: "หากต้องการย้อนกลับคำสั่งที่ทำผิดพลาด (Undo) ต้องกดคีย์ลัดใด?", target: "Ctrl + Z", opts: ["Ctrl + Y", "Ctrl + X", "Ctrl + Z", "Ctrl + A"] },
-      4: { q: "เครื่องมือรูป 'แปรงทาสี' (Format Painter) ใช้ทำหน้าที่อะไร?", target: "คัดลอกรูปแบบข้อความ", opts: ["คัดลอกรูปแบบข้อความ", "ระบายสีพื้นหลัง", "ลบตัวอักษร", "เปลี่ยนฟอนต์"] },
-      5: { q: "คีย์ลัดสำหรับจัดข้อความให้อยู่ 'กึ่งกลางหน้ากระดาษ' คือปุ่มใด?", target: "Ctrl + E", opts: ["Ctrl + L", "Ctrl + R", "Ctrl + E", "Ctrl + J"] },
-      6: { q: "เครื่องมือใดใช้สร้างรายการสัญลักษณ์จุดแบบไม่มีลำดับตัวเลข?", target: "Bullets", opts: ["Numbering", "Bullets", "Multilevel", "Table"] },
-      7: { q: "คำสั่ง Wrap Text แบบใด ทำให้รูปภาพไปอยู่เป็นฉากหลังแล้วตัวหนังสือลอยทับ?", target: "Behind Text", opts: ["In Front of Text", "Square", "Behind Text", "Tight"] },
-      8: { q: "คำสั่งใดใช้ 'รวมช่องเซลล์หลายช่อง' ให้กลายเป็นช่องใหญ่ช่องเดียวในตาราง?", target: "Merge Cells", opts: ["Split Cells", "Merge Cells", "Delete Row", "Insert Cell"] },
-      9: { q: "หากพิมพ์ตารางข้อมูลกว้าง ๆ ควรวางแนวหน้ากระดาษแบบใดในคำสั่ง Orientation?", target: "Landscape (แนวนอน)", opts: ["Portrait (แนวตั้ง)", "Landscape (แนวนอน)", "Columns", "Margins"] },
-      10: { q: "เส้นหยัก 'สีแดง' ใต้ข้อความ บ่งบอกถึงข้อผิดพลาดประเภทใด?", target: "สะกดคำผิด", opts: ["เว้นวรรคผิด", "สะกดคำผิด", "ไวยากรณ์ผิด", "ลืมเซฟไฟล์"] },
-      11: { q: "การดึงสารบัญอัตโนมัติ ต้องกำหนดสไตล์ให้กับหัวข้อหลักเป็นแบบใด?", target: "Heading 1 (หัวเรื่อง 1)", opts: ["Normal", "Title", "Heading 1 (หัวเรื่อง 1)", "Subtitle"] },
-      12: { q: "ส่งออกไฟล์ชนิดใดที่ช่วยล็อกฟอนต์และหน้ากระดาษไม่ให้เคลื่อนเมื่อเปิดเครื่องอื่น?", target: ".pdf", opts: [".docx", ".txt", ".pdf", ".rtf"] }
+    const vehiclesTiers = {
+      1: { name: "จักรยานเสือหมอบ (Bicycle)", icon: "🚲" },
+      2: { name: "มอเตอร์ไซค์สกู๊ตเตอร์ (Scooter)", icon: "🛵" },
+      3: { name: "รถเก๋งคลาสสิก (City Car)", icon: "🚗" },
+      4: { name: "รถกระบะซิ่ง (Pickup Turbo)", icon: "🛻" },
+      5: { name: "รถสปอร์ตเปิดประทุน (Roadster)", icon: "🏎️" },
+      6: { name: "ซูเปอร์คาร์โกลด์ (Gold Supercar)", icon: "👑" }
     };
 
-    let currentUser = { name: "Player1", coins: 0, unlockedUnit: 1, currentSkin: "taxi" };
+    const unitsList = [
+      { id: 1, title: "บทที่ 1: ส่วนประกอบ Microsoft Word", reward: "ปลดล็อก: มอเตอร์ไซค์ 🛵" },
+      { id: 2, title: "บทที่ 2: การจัดการไฟล์และคีย์ลัด", reward: "ปลดล็อก: รถเก๋ง 🚗" },
+      { id: 3, title: "บทที่ 3: พิมพ์และจัดการข้อความ", reward: "ปลดล็อก: รถกระบะ 🛻" },
+      { id: 4, title: "บทที่ 4: ตกแต่งฟอนต์และสไตล์", reward: "ปลดล็อก: รถสปอร์ต 🏎️" },
+      { id: 5, title: "บทที่ 5: จัดแนวย่อหน้าและบรรทัด", reward: "ปลดล็อก: ซูเปอร์คาร์ 👑" },
+      { id: 6, title: "บทที่ 6: หัวข้อย่อยและลำดับเลข", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 7, title: "บทที่ 7: แทรกรูปภาพ & Wrap Text", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 8, title: "บทที่ 8: สร้างและแต่งตาราง", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 9, title: "บทที่ 9: ตั้งค่าหน้ากระดาษ A4", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 10, title: "บทที่ 10: ตรวจสะกดและแทนที่คำ", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 11, title: "บทที่ 11: Style และสารบัญอัตโนมัติ", reward: "โบนัสเหรียญ +200🪙" },
+      { id: 12, title: "บทที่ 12: ส่งออกไฟล์ PDF & สั่งพิมพ์", reward: "ถ้วยรางวัลชนะเลิศ 🏆" }
+    ];
+
+    let currentUser = { name: "Player1", coins: 0, unlockedUnit: 1 };
 
     function loadUserData() {
       const data = localStorage.getItem("word_road_player_save");
@@ -270,8 +172,6 @@
 
     function saveUserData() {
       localStorage.setItem("word_road_player_save", JSON.stringify(currentUser));
-      // ส่งข้อมูลสกินให้หน้า game.html ใช้งาน
-      localStorage.setItem("word_road_active_skin", JSON.stringify(skinsDB.find(s => s.id === currentUser.currentSkin)));
       updateUI();
     }
 
@@ -286,8 +186,12 @@
     function updateUI() {
       document.getElementById("user-display").innerText = `ผู้เล่น: ${currentUser.name}`;
       document.getElementById("user-coins").innerText = currentUser.coins;
-      const curSkin = skinsDB.find(s => s.id === currentUser.currentSkin) || skinsDB[0];
-      document.getElementById("active-skin-name").innerText = `สกิน: ${curSkin.name}`;
+
+      // หายานพาหนะตามด่านสูงสุดปัจจุบัน
+      const tier = Math.min(currentUser.unlockedUnit, 6);
+      const v = vehiclesTiers[tier] || vehiclesTiers[1];
+      document.getElementById("current-vehicle-icon").innerText = v.icon;
+      document.getElementById("current-vehicle-name").innerText = v.name;
 
       const grid = document.getElementById("units-container");
       grid.innerHTML = "";
@@ -300,81 +204,22 @@
 
         card.innerHTML = `
           <div>
-            <div style="font-family:'Chakra Petch'; font-weight:800; font-size:0.85rem; color:#0284c7;">UNIT ${u.id.toString().padStart(2, '0')}</div>
-            <div style="font-weight:800; font-size:1.05rem; margin-top:4px;">${u.title}</div>
+            <div style="font-family:'Chakra Petch'; font-weight:800; font-size:0.85rem; color:#0284c7;">STAGE ${u.id.toString().padStart(2, '0')}</div>
+            <div style="font-weight:800; font-size:1.05rem; margin:4px 0;">${u.title}</div>
+            <div style="font-size:0.8rem; color:#eab308; font-weight:800;">🎁 ${u.reward}</div>
           </div>
-          <button class="btn-challenge" ${isUnlocked ? `onclick="startChallenge(${u.id})"` : 'disabled'} style="${!isUnlocked ? 'background:#cbd5e1; box-shadow:none; cursor:not-allowed;' : ''}">
-            <span>${isCompleted ? 'ท้าทายซ้ำ (+10🪙)' : (isUnlocked ? 'เริ่มภารกิจ (+50🪙)' : '🔒 ล็อกอยู่')}</span>
+          <button class="btn-challenge" ${isUnlocked ? `onclick="playStage(${u.id})"` : 'disabled'} style="${!isUnlocked ? 'background:#cbd5e1; box-shadow:none; cursor:not-allowed;' : ''}">
+            <span>${isCompleted ? 'ซิ่งท้าทายซ้ำ 🏁' : (isUnlocked ? 'ลงสนามซิ่งเลย! 🚀' : '🔒 ล็อกอยู่')}</span>
           </button>
         `;
         grid.appendChild(card);
       });
     }
 
-    let activeUnitId = 1;
-    function startChallenge(unitId) {
-      activeUnitId = unitId;
-      const qData = quickQuizzes[unitId];
-      if (!qData) return;
-
-      document.getElementById("quiz-tag").innerText = `ภารกิจบทที่ ${unitId}`;
-      document.getElementById("quiz-question-text").innerText = qData.q;
-      const optBox = document.getElementById("quiz-options-box");
-      optBox.innerHTML = "";
-
-      qData.opts.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "btn-opt";
-        btn.innerText = opt;
-        btn.onclick = () => {
-          if (opt === qData.target) {
-            alert("ถูกต้อง! ภารกิจสำเร็จ 🎉");
-            currentUser.coins += 50;
-            if (activeUnitId === currentUser.unlockedUnit) {
-              currentUser.unlockedUnit++;
-            }
-            saveUserData();
-            document.getElementById("quiz-modal").style.display = "none";
-          } else {
-            alert("ยังไม่ถูกต้อง! ลองเลือกคำตอบใหม่อีกครั้งครับ");
-          }
-        };
-        optBox.appendChild(btn);
-      });
-
-      document.getElementById("quiz-modal").style.display = "flex";
+    // กดแล้วพาไปหน้าสนาม 3D ของด่านนั้นทันที ไม่ต้องมีข้อสอบ Popup คั่น
+    function playStage(stageNum) {
+      window.location.href = `game.html?stage=${stageNum}`;
     }
-
-    function openGarage() {
-      const grid = document.getElementById("cars-grid");
-      grid.innerHTML = "";
-
-      skinsDB.forEach(skin => {
-        const isUnlocked = currentUser.unlockedUnit >= skin.unlockUnit;
-        const isSelected = currentUser.currentSkin === skin.id;
-
-        const card = document.createElement("div");
-        card.className = `car-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
-        card.innerHTML = `
-          <div style="font-size:2.2rem;">${skin.icon}</div>
-          <div style="font-family:'Chakra Petch'; font-weight:800; font-size:0.95rem;">${skin.name}</div>
-          <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">${isUnlocked ? (isSelected ? 'กำลังใช้งาน' : 'กดเลือก') : `ปลดล็อกบท ${skin.unlockUnit}`}</div>
-        `;
-
-        if (isUnlocked) {
-          card.onclick = () => {
-            currentUser.currentSkin = skin.id;
-            saveUserData();
-            openGarage();
-          };
-        }
-        grid.appendChild(card);
-      });
-
-      document.getElementById("garage-modal").style.display = "flex";
-    }
-
-    function closeGarage() { document.getElementById("garage-modal").style.display = "none"; }
 
     window.addEventListener("DOMContentLoaded", () => {
       loadUserData();
