@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Word Road 3D: Bright Arcade Learning Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;0,800;1,700&family=Kanit:wght@300;400;500;600;700;800;900&family=TH+Sarabun+PSK:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --word-blue-dark: #1e40af;
+      --word-blue-main: #1d4ed8;
+      --word-blue-bright: #3b82f6;
+      --word-cyan: #0284c7;
+      --arcade-gold: #f59e0b;
+      --arcade-yellow: #facc15;
+      --arcade-green: #10b981;
+      --arcade-red: #ef4444;
+      --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+    }
+
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      user-select: none; -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      font-family: 'Kanit', sans-serif;
+      color: var(--text-main);
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 20px 14px 50px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: 
+        linear-gradient(to right, rgba(2, 132, 199, 0.12) 2px, transparent 2px),
+        linear-gradient(to bottom, rgba(2, 132, 199, 0.12) 2px, transparent 2px);
+      background-size: 32px 32px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .svg-icon {
+      width: 22px; height: 22px; fill: currentColor;
+      display: inline-block; vertical-align: middle; flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       1. AUTH SCREEN
+       ========================================================================== */
+    #auth-screen {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      display: flex; justify-content: center; align-items: center;
+      padding: 16px; z-index: 200;
+    }
+
+    .arcade-auth-card {
+      background: #ffffff;
+      border: 4px solid var(--word-blue-main);
+      border-radius: 28px; padding: 32px 24px;
+      max-width: 440px; width: 100%;
+      box-shadow: 0 10px 0 var(--word-blue-dark), 0 20px 40px rgba(2, 132, 199, 0.3);
+      position: relative; overflow: hidden; z-index: 1;
+      animation: pop3D 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes pop3D {
+      from { transform: scale(0.85) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .auth-header { text-align: center; margin-bottom: 22px; }
+
+    .word-brand-badge {
+      width: 68px; height: 68px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-radius: 20px; margin: 0 auto 12px;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 6px 0 #1e3a8a, 0 10px 20px rgba(37, 99, 235, 0.4);
+      color: #fff; font-family: 'Chakra Petch', sans-serif; font-size: 2.4rem; font-weight: 900;
+    }
+
+    .game-title-arcade {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 2.3rem; font-weight: 900; font-style: italic;
+      color: var(--word-blue-main);
+      letter-spacing: 1px; line-height: 1.1;
+      text-shadow: 3px 3px 0px #bae6fd;
+    }
+
+    .game-subtitle {
+      color: #d97706; font-size: 0.88rem; font-weight: 800;
+      letter-spacing: 1px; text-transform: uppercase; margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    .auth-tabs {
+      display: flex; background: #e0f2fe;
+      padding: 5px; border-radius: 16px; margin-bottom: 20px; border: 2px solid #7dd3fc;
+    }
+
+    .auth-tab-btn {
+      flex: 1; padding: 10px; border: none; background: transparent;
+      color: var(--text-muted); font-family: 'Kanit'; font-weight: 700;
+      font-size: 0.95rem; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    }
+
+    .auth-tab-btn.active {
+      background: #ffffff; color: var(--word-blue-main);
+      box-shadow: 0 4px 0 #93c5fd; font-weight: 800;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper .svg-icon { position: absolute; left: 16px; color: var(--word-blue-main); }
+
+    .bright-input {
+      width: 100%; padding: 14px 16px 14px 48px; border-radius: 16px;
+      border: 3px solid #bae6fd; background: #f8fafc; color: var(--text-main);
+      font-family: 'Kanit'; font-size: 0.98rem; font-weight: 600; outline: none; transition: all 0.2s;
+    }
+
+    .bright-input:focus {
+      border-color: var(--word-blue-main); background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-3d-green {
+      width: 100%; padding: 15px; border-radius: 18px; border: none;
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #fff; font-family: 'Chakra Petch'; font-size: 1.2rem; font-weight: 800;
+      cursor: pointer; box-shadow: 0 6px 0 #047857, 0 10px 20px rgba(16, 185, 129, 0.3);
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-3d-green:active { transform: translateY(4px); box-shadow: 0 2px 0 #047857; }
+
+    /* ==========================================================================
+       2. MAIN HUB SCREEN
+       ========================================================================== */
+    #hub-screen {
+      display: none; width: 100%; max-width: 1050px;
+      flex-direction: column; gap: 20px; z-index: 1;
+    }
+
+    .hub-navbar {
+      background: #ffffff; border: 3px solid var(--word-blue-main);
+      border-radius: 22px; padding: 14px 22px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 8px 0 var(--word-blue-dark), 0 12px 25px rgba(2, 132, 199, 0.2);
+    }
+
+    .user-profile-info { display: flex; align-items: center; gap: 12px; }
+
+    .user-avatar {
+      width: 46px; height: 46px; border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      display: flex; justify-content: center; align-items: center;
+      color: #fff; font-weight: 900; font-size: 1.3rem;
+      box-shadow: 0 4px 0 #1e3a8a;
+    }
+
+    .user-details h3 { font-size: 1.1rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+    .user-details p { font-size: 0.82rem; color: var(--word-blue-main); font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+
+    .btn-logout {
+      padding: 9px 16px; border-radius: 14px; border: 2px solid #fecdd3;
+      background: #fff1f2; color: #e11d48; font-family: 'Kanit'; font-weight: 700; font-size: 0.88rem;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+      box-shadow: 0 4px 0 #fda4af;
+    }
+    .btn-logout:active { transform: translateY(2px); box-shadow: 0 1px 0 #fda4af; }
+
+    .word-hero-banner {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+      border: 4px solid var(--word-blue-main); border-radius: 26px; padding: 22px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 8px 0 var(--word-blue-dark), 0 15px 30px rgba(2, 132, 199, 0.2); gap: 16px; flex-wrap: wrap;
+    }
+
+    .hero-brand-group { display: flex; align-items: center; gap: 18px; }
+    .hero-w-icon {
+      width: 62px; height: 62px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 18px;
+      color: #fff; font-family: 'Chakra Petch', sans-serif; font-size: 2.4rem; font-weight: 900;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 6px 0 #1e3a8a; flex-shrink: 0;
+    }
+
+    .banner-text h2 { font-family: 'Chakra Petch'; font-size: 1.7rem; font-weight: 800; color: var(--word-blue-main); line-height: 1.2; }
+    .banner-text p { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+
+    .progress-pill-badge {
+      background: #fef3c7; border: 3px solid #fde047; color: #b45309;
+      padding: 8px 20px; border-radius: 999px; font-weight: 800; font-size: 0.98rem;
+      display: flex; align-items: center; gap: 8px; white-space: nowrap;
+      box-shadow: 0 5px 0 #d97706;
+    }
+
+    .units-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px; width: 100%;
+    }
+
+    .unit-card {
+      background: #ffffff; border: 3px solid #bae6fd; border-radius: 24px; padding: 20px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 16px;
+      position: relative; transition: all 0.2s; box-shadow: 0 6px 0 #7dd3fc;
+    }
+
+    .unit-card.unlocked { border-color: var(--word-blue-main); box-shadow: 0 6px 0 var(--word-blue-dark); }
+    .unit-card.completed { border-color: var(--arcade-green); background: #f0fdf4; box-shadow: 0 6px 0 #047857; }
+    .unit-card.locked { opacity: 0.7; background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 6px 0 #94a3b8; }
+
+    .unit-card-top { display: flex; justify-content: space-between; align-items: center; }
+
+    .unit-badge {
+      font-family: 'Chakra Petch'; font-weight: 800; font-size: 0.85rem;
+      padding: 4px 12px; border-radius: 10px; letter-spacing: 0.5px;
+    }
+    .unit-card.unlocked .unit-badge { background: #e0f2fe; color: #0284c7; border: 1px solid #7dd3fc; }
+    .unit-card.completed .unit-badge { background: #d1fae5; color: #047857; border: 1px solid #6ee7b7; }
+    .unit-card.locked .unit-badge { background: #e2e8f0; color: #64748b; }
+
+    .status-tag { font-size: 0.82rem; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+    .status-tag.locked { color: #94a3b8; }
+    .status-tag.unlocked { color: var(--word-blue-main); }
+    .status-tag.completed { color: var(--arcade-green); }
+
+    .unit-title-text { font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1.4; margin-top: 4px; }
+
+    .unit-actions-group { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; }
+
+    .btn-act {
+      padding: 12px 10px; border-radius: 14px; border: none;
+      font-family: 'Kanit', sans-serif; font-size: 0.9rem; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 6px; transition: all 0.1s;
+    }
+
+    .btn-study { background: #e0f2fe; color: #0284c7; border: 2px solid #38bdf8; box-shadow: 0 4px 0 #0284c7; }
+    .btn-study:hover { background: #bae6fd; }
+    .btn-study:active { transform: translateY(3px); box-shadow: 0 1px 0 #0284c7; }
+
+    .btn-quiz { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); color: #fff; box-shadow: 0 4px 0 #1e3a8a; }
+    .btn-quiz:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e3a8a; }
+
+    .btn-disabled { background: #e2e8f0 !important; color: #94a3b8 !important; border: none !important; box-shadow: 0 4px 0 #cbd5e1 !important; cursor: not-allowed; }
+
+    .final-game-card {
+      background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
+      border: 4px solid var(--arcade-yellow); border-radius: 26px; padding: 24px 28px;
+      color: #fff; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 10px 0 #b45309, 0 20px 40px rgba(0, 0, 0, 0.3); gap: 16px; flex-wrap: wrap; margin-top: 10px;
+    }
+
+    .btn-start-3dgame {
+      padding: 15px 30px; border-radius: 18px; border: none;
+      background: linear-gradient(180deg, #facc15 0%, #eab308 100%);
+      color: #713f12; font-family: 'Chakra Petch'; font-size: 1.2rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 6px 0 #b45309; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-start-3dgame:active { transform: translateY(4px); box-shadow: 0 2px 0 #b45309; }
+
+    /* ==========================================================================
+       3. INTERACTIVE MINIGAME QUIZ MODAL & DRAG-DROP / ICON COMPONENTS
+       ========================================================================== */
+    #quiz-modal {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center;
+      padding: 16px; z-index: 300;
+    }
+
+    .quiz-box {
+      background: #ffffff; border: 4px solid var(--word-blue-main);
+      border-radius: 28px; padding: 26px; max-width: 600px; width: 100%;
+      color: var(--text-main); box-shadow: 0 10px 0 var(--word-blue-dark), 0 25px 50px rgba(0,0,0,0.4);
+      animation: pop3D 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .quiz-top {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 2px dashed #bae6fd; padding-bottom: 12px; margin-bottom: 16px;
+    }
+
+    .q-step-badge {
+      background: #e0f2fe; color: var(--word-blue-main); font-weight: 800; font-size: 0.88rem;
+      padding: 4px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 0 #7dd3fc;
+    }
+
+    .q-title { font-size: 1.15rem; font-weight: 800; line-height: 1.45; color: #0f172a; margin-bottom: 16px; }
+
+    .quiz-interactive-area {
+      background: #f0f9ff; border: 2px solid #bae6fd; border-radius: 20px;
+      padding: 20px; margin-bottom: 16px; min-height: 180px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    }
+
+    /* DRAG AND DROP VISUAL CANVAS */
+    .drag-image-container {
+      width: 100%; background: #ffffff; border: 2px solid #38bdf8;
+      border-radius: 18px; padding: 18px; position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .drag-drop-zone {
+      width: 100%; max-width: 280px; min-height: 52px; border: 3px dashed #0284c7;
+      border-radius: 14px; background: #e0f2fe; display: flex;
+      justify-content: center; align-items: center; padding: 6px; transition: all 0.2s;
+    }
+    .drag-drop-zone.hovered { background: #bae6fd; border-color: #1d4ed8; scale: 1.02; }
+    .drag-drop-zone.filled { border-style: solid; border-color: #10b981; background: #d1fae5; }
+
+    .drag-item-pool {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; margin-top: 6px;
+    }
+
+    .draggable-chip {
+      padding: 10px 18px; background: #ffffff; border: 2px solid #38bdf8;
+      border-radius: 14px; font-weight: 800; color: #0369a1; cursor: grab;
+      box-shadow: 0 4px 0 #0284c7; transition: all 0.15s; font-size: 0.92rem;
+      display: flex; align-items: center; gap: 6px;
+      touch-action: none;
+    }
+    .draggable-chip:active { cursor: grabbing; transform: scale(0.95); }
+    .draggable-chip.dragging { opacity: 0.4; }
+
+    /* IMAGE / ICON OPTION GRID & CARDS */
+    .question-img-banner {
+      width: 100%; background: #ffffff; border: 3px solid #38bdf8;
+      border-radius: 18px; padding: 16px; display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 5px 0 #0284c7; margin-bottom: 4px;
+    }
+
+    .icon-options-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;
+    }
+
+    .icon-option-card {
+      background: #ffffff; border: 3px solid #bae6fd; border-radius: 18px; padding: 14px 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; transition: all 0.15s; box-shadow: 0 5px 0 #7dd3fc; min-height: 95px;
+    }
+    .icon-option-card:hover { border-color: var(--word-blue-main); background: #e0f2fe; }
+    .icon-option-card:active { transform: translateY(3px); box-shadow: 0 2px 0 #7dd3fc; }
+    .icon-option-card .svg-icon { width: 36px; height: 36px; color: var(--word-blue-main); }
+    .icon-option-card span { font-size: 0.88rem; font-weight: 800; text-align: center; color: var(--text-main); }
+
+    .choices-list-mini { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+    .btn-choice-item {
+      width: 100%; padding: 13px 18px; border-radius: 16px; border: 2px solid #bae6fd;
+      background: #fff; text-align: left; font-family: 'Kanit'; font-size: 0.95rem;
+      font-weight: 800; color: #334155; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 0 #7dd3fc;
+    }
+    .btn-choice-item:hover { border-color: var(--word-blue-main); background: #e0f2fe; }
+    .btn-choice-item:active { transform: translateY(2px); box-shadow: 0 1px 0 #7dd3fc; }
+
+    /* HINT MODAL (ใบความรู้เมื่อตอบผิด) */
+    #hint-modal {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center;
+      padding: 18px; z-index: 400;
+    }
+
+    .hint-card {
+      background: #ffffff; border: 4px solid var(--arcade-gold);
+      border-radius: 28px; padding: 26px; max-width: 500px; width: 100%;
+      color: var(--text-main); box-shadow: 0 10px 0 #d97706, 0 25px 50px rgba(0,0,0,0.5);
+      animation: pop3D 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .hint-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+      color: #d97706; font-size: 1.25rem; font-weight: 800;
+    }
+
+    .hint-box {
+      background: #fef3c7; border-left: 6px solid #f59e0b;
+      padding: 16px 18px; border-radius: 16px; margin-bottom: 20px;
+    }
+
+    .hint-box-title { font-size: 1.05rem; font-weight: 800; color: #b45309; margin-bottom: 6px; }
+    .hint-box-desc { font-size: 0.95rem; color: #451a03; line-height: 1.65; }
+
+    /* RESULT MODAL (สรุปคะแนนสดใส & เกณฑ์ผ่าน 7 คะแนน) */
+    #result-modal {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center;
+      padding: 18px; z-index: 500;
+    }
+
+    .result-card {
+      background: #ffffff; border: 4px solid var(--word-blue-main);
+      border-radius: 28px; padding: 28px 24px; max-width: 480px; width: 100%;
+      text-align: center; color: var(--text-main);
+      box-shadow: 0 10px 0 var(--word-blue-dark), 0 25px 50px rgba(0,0,0,0.5);
+      animation: pop3D 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .result-icon-badge {
+      width: 76px; height: 76px; background: linear-gradient(135deg, #facc15, #f59e0b);
+      border-radius: 24px; margin: 0 auto 16px; display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 6px 0 #b45309; color: #fff;
+    }
+
+    .result-title { font-family: 'Chakra Petch'; font-size: 1.8rem; font-weight: 900; color: var(--word-blue-main); margin-bottom: 6px; }
+    .result-praise { font-size: 1.05rem; font-weight: 800; color: #d97706; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .score-banner-box {
+      background: #f0f9ff; border: 3px dashed #38bdf8; border-radius: 20px;
+      padding: 16px; margin-bottom: 22px;
+    }
+    .score-label { font-size: 0.9rem; font-weight: 700; color: #475569; }
+    .score-val { font-family: 'Chakra Petch'; font-size: 2.8rem; font-weight: 900; color: var(--word-blue-main); line-height: 1.1; margin-top: 2px; }
+
+    .result-actions { display: flex; flex-direction: column; gap: 10px; }
+
+    @media (max-width: 640px) {
+      body { padding: 14px 10px; }
+      .word-hero-banner { flex-direction: column; align-items: flex-start; }
+      .units-grid { grid-template-columns: 1fr; }
+      .icon-options-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="arcade-auth-card">
+      <div class="auth-header">
+        <div class="word-brand-badge">W</div>
+        <div class="game-title-arcade">WORD ROAD 3D</div>
+        <div class="game-subtitle">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V9h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          Microsoft Word Arcade Hub
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login-btn" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+        <button class="auth-tab-btn" id="tab-register-btn" onclick="switchTab('register')">ลงทะเบียนผู้ใช้</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <input type="text" id="login-username" class="bright-input" placeholder="ชื่อผู้ใช้ / เลขที่..." required autocomplete="off" />
+          </div>
+          <div class="input-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <input type="password" id="login-password" class="bright-input" placeholder="รหัสผ่าน..." required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-3d-green">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+          <span>เข้าสู่ระบบ (START GAME)</span>
+        </button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <input type="text" id="reg-fullname" class="bright-input" placeholder="ชื่อ - นามสกุล หรือ เลขที่..." required autocomplete="off" />
+          </div>
+          <div class="input-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            <input type="text" id="reg-username" class="bright-input" placeholder="ตั้งชื่อผู้ใช้ (Username)..." required autocomplete="off" />
+          </div>
+          <div class="input-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <input type="password" id="reg-password" class="bright-input" placeholder="ตั้งรหัสผ่าน (Password)..." required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-3d-green">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span>ยืนยันการลงทะเบียน</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. MAIN HUB SCREEN -->
+  <div id="hub-screen">
+    <!-- Navbar -->
+    <div class="hub-navbar">
+      <div class="user-profile-info">
+        <div class="user-avatar" id="user-avatar-text">U</div>
+        <div class="user-details">
+          <h3 id="display-fullname">ผู้ใช้งานระบบ</h3>
+          <p>
+            <svg class="svg-icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+            <span id="display-username">@username</span>
+          </p>
+        </div>
+      </div>
+
+      <button class="btn-logout" onclick="logout()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+        <span>ออกจากระบบ</span>
+      </button>
+    </div>
+
+    <!-- Word Hero Banner -->
+    <div class="word-hero-banner">
+      <div class="hero-brand-group">
+        <div class="hero-w-icon">W</div>
+        <div class="banner-text">
+          <h2>MICROSOFT WORD LAB 3D</h2>
+          <p>ต้องทำแบบทดสอบได้คะแนนตั้งแต่ 7 / 10 คะแนนขึ้นไป เพื่อปลดล็อกบทเรียนถัดไป!</p>
+        </div>
+      </div>
+      <div class="progress-pill-badge">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+        <span id="progress-text">ความคืบหน้า: 1 / 12 บท</span>
+      </div>
+    </div>
+
+    <!-- Units Grid -->
+    <div class="units-grid" id="units-grid"></div>
+
+    <!-- Grand Final Boss Game Card -->
+    <div class="final-game-card">
+      <div>
+        <div style="font-family:'Chakra Petch'; font-size:1.35rem; font-weight:800; color:#facc15; display:flex; align-items:center; gap:8px;">
+          <svg class="svg-icon" style="width:26px; height:26px; fill:#facc15;" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+          WORD ROAD 3D: GRAND PRIX (สนามแข่งจริง 20 ข้อ)
+        </div>
+        <div style="font-size:0.85rem; color:#cbd5e1; margin-top:4px;" id="final-lock-desc">
+          🔒 ต้องทำแบบทดสอบผ่านเกณฑ์ (7/10) ให้ครบทั้ง 12 บทก่อน จึงจะเปิดสนามแข่งหลักได้
+        </div>
+      </div>
+      <button class="btn-start-3dgame btn-disabled" id="btn-final-game" onclick="openFinalGame()">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>เข้าสู่สนามแข่ง GRAND PRIX</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. INTERACTIVE MINIGAME QUIZ MODAL -->
+  <div id="quiz-modal">
+    <div class="quiz-box">
+      <div class="quiz-top">
+        <span class="q-step-badge" id="quiz-badge">ข้อที่ 1 / 10</span>
+        <span style="font-weight:800; color:var(--word-blue-main);" id="quiz-unit-title">บทที่ 1</span>
+      </div>
+      
+      <div class="q-title" id="quiz-q-text">คำถามทดสอบ...</div>
+
+      <div class="quiz-interactive-area" id="quiz-interactive-area"></div>
+
+      <div style="font-size:0.82rem; color:#475569; text-align:center; font-weight:700;">
+        ต้องทำคะแนนตอบถูกครั้งแรกให้ได้ 7 ข้อขึ้นไปเพื่อปลดล็อกบทถัดไป
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. HINT MODAL (ใบความรู้เมื่อตอบผิด) -->
+  <div id="hint-modal">
+    <div class="hint-card">
+      <div class="hint-header">
+        <svg class="svg-icon" style="width:28px; height:28px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span>ยังไม่ถูกต้อง! มาดูใบความรู้ช่วยจำ</span>
+      </div>
+      <div class="hint-box">
+        <div class="hint-box-title" id="hint-title">เทคนิคสำคัญ</div>
+        <div class="hint-box-desc" id="hint-desc">คำอธิบายช่วยจำ...</div>
+      </div>
+      <button class="btn-3d-green" onclick="closeHintModal()">
+        <span>เข้าใจแล้ว ลองใหม่อีกครั้ง!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. RESULT MODAL (สรุปคะแนน & เกณฑ์ผ่าน 7 คะแนน) -->
+  <div id="result-modal">
+    <div class="result-card">
+      <div class="result-icon-badge" id="result-icon-badge">
+        <svg class="svg-icon" style="width:42px; height:42px; fill:#fff;" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+      </div>
+      <div class="result-title" id="result-title">สรุปผลการทดสอบ</div>
+      <div class="result-praise" id="result-praise">
+        <svg class="svg-icon" style="width: 20px; height: 20px; color: #d97706;" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/></svg>
+        <span>ผลการทดสอบ</span>
+      </div>
+      
+      <div class="score-banner-box">
+        <div class="score-label">คะแนนที่ทำได้ (ตอบถูกครั้งแรก)</div>
+        <div class="score-val" id="result-score-val">0 / 10</div>
+        <div style="font-size: 0.82rem; font-weight: 800; color: #0284c7; margin-top: 4px;" id="result-pass-status">เกณฑ์การผ่าน: 7 / 10 คะแนน</div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-3d-green" id="btn-next-unit-study" onclick="goToNextUnitFromModal()">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21 12l-8.15-8.15-1.42 1.42L16.86 11H5v2z"/></svg>
+          <span>ไปอ่านสรุปบทถัดไปเลย</span>
+        </button>
+        <button class="btn-act btn-quiz" id="btn-retry-quiz" style="width:100%; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="retryCurrentQuiz()">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          <span>ทำแบบทดสอบอีกครั้ง (Retry)</span>
+        </button>
+        <button class="btn-act btn-study" style="width:100%; display: flex; align- items: center; justify-content: center; gap: 8px;" onclick="closeResultModal()">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span>กลับไปยังหน้าหลัก</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const unitsList = [
+      { id: 1, title: "บทที่ 1: รู้จักหน้าตาและส่วนประกอบของ Microsoft Word" },
+      { id: 2, title: "บทที่ 2: การจัดการไฟล์เอกสารและคีย์ลัดพื้นฐาน" },
+      { id: 3, title: "บทที่ 3: การพิมพ์และการจัดการข้อความภาษาไทย/อังกฤษ" },
+      { id: 4, title: "บทที่ 4: การตกแต่งฟอนต์และรูปแบบตัวอักษร" },
+      { id: 5, title: "บทที่ 5: การจัดแนวย่อหน้าและการเว้นระยะบรรทัด" },
+      { id: 6, title: "บทที่ 6: การสร้างรายการหัวข้อย่อยและลำดับเลข" },
+      { id: 7, title: "บทที่ 7: การแทรกรูปภาพและการจัดตัดข้อความ (Wrap Text)" },
+      { id: 8, title: "บทที่ 8: การสร้างและตกแต่งตารางข้อมูล" },
+      { id: 9, title: "บทที่ 9: การตั้งค่าหน้ากระดาษและระยะขอบ (Page Setup)" },
+      { id: 10, title: "บทที่ 10: การตรวจคำผิดและการค้นหา/แทนที่คำ" },
+      { id: 11, title: "บทที่ 11: การใช้งาน Style และการสร้างสารบัญอัตโนมัติ" },
+      { id: 12, title: "บทที่ 12: การส่งออกไฟล์และการพิมพ์เอกสาร (Print & Export)" }
+    ];
+
+    const svgIconsDB = {
+      bold: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M15.6 10.79c.92-.67 1.57-1.7 1.57-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>`,
+      italic: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>`,
+      underline: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg>`,
+      alignLeft: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/></svg>`,
+      alignCenter: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M7 15v2h10v-2H7zm-4-8v2h18V7H3zm2 6h14v-2H5v2zm-2 8h18v-2H3v2zm4-18v2h10V3H7z"/></svg>`,
+      alignRight: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"/></svg>`,
+      save: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>`,
+      table: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/></svg>`,
+      picture: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`,
+      bullets: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></svg>`,
+      numbering: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></svg>`,
+      print: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>`,
+      spelling: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12.45 16h2.09L9.43 3H7.57L2.46 16h2.09l1.12-3h5.66l1.12 3zM7.07 9.25L8.5 5.48l1.43 3.77H7.07zM17.5 10.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5S21.38 8 20 8s-2.5 1.12-2.5 2.5zm4.08 4.26c-.84.77-1.99 1.24-3.25 1.24-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.26-.47 2.41-1.24 3.25L23 20l-1.42 1.42-3.08-3.08z"/></svg>`
+    };
+
+    /* ชุดข้อสอบประจำบท (ข้อ 1-3 ลากวาง / ข้อ 4-10 มีโหมดรูปภาพและไอคอนกดตอบ) */
+    const unitQuizzes = {
+      1: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากกล่องคำตอบไปวางในช่องว่างบนภาพให้ตรงกับชื่อแท็บ Ribbon แถบสีน้ำเงิน", imgSvg: `<div style="background:#1d4ed8; color:#fff; padding:12px; border-radius:12px; font-weight:800; width:100%; text-align:center;">แถบเครื่องมือหลัก (RIBBON TAB)</div>`, target: "Home", items: ["Home", "Insert", "Layout"], hintTitle: "แท็บ Home", hintText: "แท็บ <b>Home (หน้าแรก)</b> เป็นศูนย์รวมเครื่องมือหลัก เช่น ฟอนต์ และย่อหน้า" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากสัญลักษณ์ไปวางในช่องว่างให้ตรงกับตำแหน่งปุ่ม Save (บันทึก)", imgSvg: `<div style="background:#e0f2fe; border:2px dashed #0284c7; padding:14px; border-radius:12px; width:100%; text-align:center; font-weight:800;">ตำแหน่ง Quick Access Toolbar</div>`, target: "Save Icon", items: ["Save Icon", "Table Icon", "Font Icon"], hintTitle: "ไอคอน Save", hintText: "ไอคอนรูปแผ่นดิสก์ย่อส่วนใช้สำหรับบันทึกงาน" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากชื่อส่วนประกอบไปวางในช่องว่างของภาพพื้นที่สีขาวตรงกลาง", imgSvg: `<div style="background:#fff; border:2px solid #94a3b8; padding:20px; border-radius:8px; width:100%; text-align:center; font-weight:800; color:#64748b;">[ พื้นที่สีขาวพิมพ์งาน ]</div>`, target: "Document Window", items: ["Document Window", "Status Bar", "Title Bar"], hintTitle: "Document Window", hintText: "พื้นที่สีขาวตรงกลางเปรียบเสมือนกระดาษพิมพ์งาน" },
+        
+        { type: "imgChoice", q: "จากภาพที่ปรากฏ คือส่วนประกอบใดของหน้าต่างโปรแกรม Microsoft Word?", imgSvg: `<div class="question-img-banner"><div style="background:#0284c7; color:#fff; font-weight:800; padding:8px 16px; border-radius:10px;">Document1 - Microsoft Word</div></div>`, target: "Title Bar (แถบชื่อเรื่อง)", options: ["Title Bar (แถบชื่อเรื่อง)", "Status Bar (แถบสถานะ)", "Ribbon Bar", "Scroll Bar"], hintTitle: "Title Bar", hintText: "แสดงชื่อไฟล์และชื่อโปรแกรมอยู่บนสุด" },
+        { type: "iconChoice", q: "นักเรียนต้องการปรับย่อ-ขยายมุมมองหน้ากระดาษพิมพ์งาน ควรใช้เครื่องมือในข้อใด?", target: "Zoom Slider", options: [{ text: "Zoom Slider", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"/></svg>` }, { text: "Save Icon", svg: svgIconsDB.save }, { text: "Table Icon", svg: svgIconsDB.table }, { text: "Print Icon", svg: svgIconsDB.print }], hintTitle: "Zoom Slider", hintText: "สไลเดอร์ย่อ-ขยายมุมมองตั้งอยู่มุมล่างขวา" },
+        { type: "choice", q: "แถบด้านล่างสุดของหน้าจอที่บอกจำนวนหน้าและจำนวนคำ คืออะไร?", target: "Status Bar (แถบสถานะ)", options: ["Status Bar (แถบสถานะ)", "Title Bar (แถบชื่อเรื่อง)", "Quick Access Toolbar", "Ruler Bar"], hintTitle: "Status Bar", hintText: "<b>Status Bar</b> บอกสถิติการพิมพ์" },
+        { type: "choice", q: "หากต้องการซูมย่อ-ขยายมุมมองกระดาษ สามารถปรับได้ที่ส่วนใด?", target: "Zoom Slider บนแถบสถานะด้านล่างขวา", options: ["Zoom Slider บนแถบสถานะด้านล่างขวา", "แถบ Title Bar", "เมนู File", "ไม้บรรทัด"], hintTitle: "Zoom Slider", hintText: "อยู่ตรงมุมล่างขวาบนแถบสถานะ" },
+        { type: "choice", q: "เครื่องมือ ไม้บรรทัด (Ruler) อยู่ในแถบเมนูใด?", target: "View (มุมมอง)", options: ["View (มุมมอง)", "Home (หน้าแรก)", "Insert (แทรก)", "Layout"], hintTitle: "Ruler", hintText: "เปิดได้ที่แท็บ <b>View > Ruler</b>" },
+        { type: "choice", q: "Quick Access Toolbar อยู่บริเวณใดของหน้าจอ?", target: "มุมบนซ้ายมือข้าง Title Bar", options: ["มุมบนซ้ายมือข้าง Title Bar", "มุมล่างขวา", "ตรงกลางหน้ากระดาษ", "ล่างสุด"], hintTitle: "Quick Access", hintText: "แถบเครื่องมือด่วนอยู่มุมบนซ้ายสุด" },
+        { type: "choice", q: "ปุ่มปิดโปรแกรม (Close / X) ตั้งอยู่ตำแหน่งใด?", target: "มุมขวาบนสุดของ Title Bar", options: ["มุมขวาบนสุดของ Title Bar", "มุมซ้ายล่าง", "แถบ Ribbon", "มุมซ้ายบน"], hintTitle: "ปุ่ม Close", hintText: "ปุ่ม [X] สีแดง/ขาว ตั้งอยู่มุมขวาบนสุด" }
+      ],
+      2: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากคีย์ลัดไปวางในช่องให้ตรงกับคำสั่ง บันทึกเอกสาร (Save)", imgSvg: `<div style="background:#e0f2fe; padding:12px; border-radius:12px; font-weight:800; text-align:center;">คำสั่ง: บันทึกเอกสารด่วน</div>`, target: "Ctrl + S", items: ["Ctrl + S", "Ctrl + N", "Ctrl + P"], hintTitle: "คีย์ลัด Save", hintText: "<b>Ctrl + S</b> = Save บันทึกเอกสาร" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากคีย์ลัดไปวางในช่องให้ตรงกับคำสั่ง คัดลอกข้อความ (Copy)", imgSvg: `<div style="background:#e0f2fe; padding:12px; border-radius:12px; font-weight:800; text-align:center;">คำสั่ง: คัดลอกข้อความ (Copy)</div>`, target: "Ctrl + C", items: ["Ctrl + C", "Ctrl + X", "Ctrl + V"], hintTitle: "คีย์ลัด Copy", hintText: "<b>Ctrl + C</b> = Copy คัดลอกข้อความ" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคีย์ลัดไปวางในช่องให้ตรงกับคำสั่ง ยกเลิกการทำงาน (Undo)", imgSvg: `<div style="background:#e0f2fe; padding:12px; border-radius:12px; font-weight:800; text-align:center;">คำสั่ง: ยกเลิกคำสั่งย้อนกลับ (Undo)</div>`, target: "Ctrl + Z", items: ["Ctrl + Z", "Ctrl + Y", "Ctrl + A"], hintTitle: "คีย์ลัด Undo", hintText: "<b>Ctrl + Z</b> = Undo ย้อนกลับคำสั่ง" },
+        
+        { type: "iconChoice", q: "หากต้องการสั่งพิมพ์เอกสารออกทางเครื่องพิมพ์ ควรใช้ปุ่มสัญลักษณ์ใด?", target: "Print Icon", options: [{ text: "Print Icon", svg: svgIconsDB.print }, { text: "Save Icon", svg: svgIconsDB.save }, { text: "Table Icon", svg: svgIconsDB.table }, { text: "Picture Icon", svg: svgIconsDB.picture }], hintTitle: "Print Icon", hintText: "ไอคอนรูปเครื่องพิมพ์ใช้สำหรับ Print" },
+        { type: "imgChoice", q: "จากภาพคีย์ลัดคีย์บอร์ด [ Ctrl + V ] ตรงกับคำสั่งการทำงานใด?", imgSvg: `<div class="question-img-banner"><div style="font-family:'Chakra Petch'; font-size:1.5rem; font-weight:900; color:#1d4ed8;">Ctrl + V</div></div>`, target: "วางข้อความ (Paste)", options: ["วางข้อความ (Paste)", "คัดลอก (Copy)", "ตัดข้อความ (Cut)", "บันทึก (Save)"], hintTitle: "Ctrl + V", hintText: "<b>Ctrl + V</b> = Paste วางข้อความ" },
+        { type: "choice", q: "คีย์ลัดใดใช้สำหรับเปิดไฟล์เอกสารเก่าที่บันทึกไว้ (Open)?", target: "Ctrl + O", options: ["Ctrl + P", "Ctrl + O", "Ctrl + F", "Ctrl + N"], hintTitle: "Ctrl + O", hintText: "Open = เปิดไฟล์เก่า" },
+        { type: "choice", q: "ปุ่มคีย์ลัด Ctrl + Y ทำหน้าที่อะไร?", target: "ทำซ้ำคำสั่งล่าสุด (Redo)", options: ["ทำซ้ำคำสั่งล่าสุด (Redo)", "บันทึกเป็น", "ตัดข้อความ", "ยกเลิกการทำงาน"], hintTitle: "Ctrl + Y", hintText: "Redo = ทำซ้ำคำสั่งล่าสุด" },
+        { type: "choice", q: "คำสั่ง Save As (บันทึกเป็น) ต่างจาก Save อย่างไร?", target: "Save As ใช้ตั้งชื่อไฟล์ใหม่หรือเปลี่ยนโฟลเดอร์จัดเก็บ", options: ["Save As ใช้ตั้งชื่อไฟล์ใหม่หรือเปลี่ยนโฟลเดอร์จัดเก็บ", "Save As ใช้ลบไฟล์ทิ้ง", "ไม่มีความต่างกัน", "Save As ใช้สั่งพิมพ์งาน"], hintTitle: "Save As", hintText: "ใช้เมื่อต้องการเปลี่ยนชื่อไฟล์หรือย้ายโฟลเดอร์" },
+        { type: "choice", q: "คีย์ลัดใดใช้ปิดหน้าต่างเอกสารปัจจุบันที่กำลังเปิดอยู่ (Close)?", target: "Ctrl + W", options: ["Ctrl + W", "Ctrl + Q", "Ctrl + E", "Ctrl + A"], hintTitle: "Ctrl + W", hintText: "ใช้ปิดหน้าต่างเอกสารแผ่นปัจจุบัน" },
+        { type: "choice", q: "คีย์ลัดใดใช้ คลุมดำเลือกข้อความทั้งหมด ในเอกสาร (Select All)?", target: "Ctrl + A", options: ["Ctrl + A", "Ctrl + S", "Ctrl + Z", "Ctrl + F"], hintTitle: "Ctrl + A", hintText: "Select All = เลือกทั้งหมด" }
+      ],
+      3: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากชื่อปุ่มไปวางให้ตรงกับภาพปุ่มบนคีย์บอร์ดที่ใช้สลับภาษา", imgSvg: `<div style="background:#f8fafc; border:2px solid #cbd5e1; padding:12px; border-radius:10px; font-weight:900; font-size:1.5rem; text-align:center;">~ (Grave)</div>`, target: "ปุ่มเปลี่ยนภาษา", items: ["ปุ่มเปลี่ยนภาษา", "ปุ่ม Spacebar", "ปุ่ม Shift"], hintTitle: "ปุ่มสลับภาษา", hintText: "ปุ่ม <b>~</b> ใช้สลับภาษาไทย/อังกฤษ" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากชื่อปุ่มไปวางให้ตรงกับหน้าที่การขึ้นย่อหน้าใหม่", imgSvg: `<div style="background:#f8fafc; border:2px solid #cbd5e1; padding:12px; border-radius:10px; font-weight:900; text-align:center;">[ ENTER ]</div>`, target: "ขึ้นย่อหน้าใหม่", items: ["ขึ้นย่อหน้าใหม่", "เคาะเว้นวรรค", "ลบอักษรซ้าย"], hintTitle: "Enter", hintText: "กด <b>Enter</b> ขึ้นย่อหน้าใหม่" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคำตอบไปวางตรงกับสัญลักษณ์เส้นกะพริบตำแหน่งพิมพ์", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:12px; border-radius:10px; font-weight:900; text-align:center;">| (เส้นแนวตั้งกะพริบ)</div>`, target: "เคอร์เซอร์ (Cursor)", items: ["เคอร์เซอร์ (Cursor)", "ตัวชี้เมาส์", "เส้นบรรทัด"], hintTitle: "เคอร์เซอร์", hintText: "เส้นแนวตั้งกะพริบคือจุดตำแหน่งพิมพ์อักษร" },
+        
+        { type: "imgChoice", q: "เมื่อต้องการพิมพ์อักษรภาษาอังกฤษให้เป็น ตัวพิมพ์ใหญ่ทั้งหมด ต้องเปิดใช้งานปุ่มใด?", imgSvg: `<div class="question-img-banner"><div style="background:#f1f5f9; border:2px solid #94a3b8; font-weight:900; padding:10px 20px; border-radius:10px;">[ CAPS LOCK ]</div></div>`, target: "Caps Lock", options: ["Caps Lock", "Shift", "Tab", "Backspace"], hintTitle: "Caps Lock", hintText: "กดเพื่อให้พิมพ์ตัวพิมพ์ใหญ่ต่อเนื่อง" },
+        { type: "iconChoice", q: "ปุ่มใดใช้สำหรับเคาะเว้นวรรคระยะห่างระหว่างคำ 1 เคาะ?", target: "Spacebar Key", options: [{ text: "Spacebar Key", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 9v4H6V9H4v6h16V9z"/></svg>` }, { text: "Shift Key", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 4L5 11h4v8h6v-8h4z"/></svg>` }, { text: "Backspace", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>` }, { text: "Enter Key", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7z"/></svg>` }], hintTitle: "Spacebar", hintText: "แป้นยาวล่างสุดใช้เคาะเว้นวรรค" },
+        { type: "choice", q: "ปุ่ม Delete ต่างจาก Backspace อย่างไร?", target: "Delete ลบตัวอักษรทางขวา / Backspace ลบทางซ้าย", options: ["Delete ลบตัวอักษรทางขวา / Backspace ลบทางซ้าย", "Delete ลบทั้งบรรทัด", "ไม่มีความต่างกัน", "Backspace ใช้ขึ้นบรรทัดใหม่"], hintTitle: "การลบตัวอักษร", hintText: "Backspace ลบด้านซ้าย / Delete ลบด้านขวา" },
+        { type: "choice", q: "การดับเบิลคลิก (คลิกซ้าย 2 ครั้งติดกัน) ที่ตัวอักษร จะเกิดผลอย่างไร?", target: "คลุมดำเลือกคำนั้น 1 คำพอดี", options: ["คลุมดำเลือกคำนั้น 1 คำพอดี", "เลือกทั้งย่อหน้า", "ลบคำนั้นทิ้ง", "เปลี่ยนสีตัวหนังสือ"], hintTitle: "คลิก 2 ครั้ง", hintText: "ดับเบิลคลิก = เลือก 1 คำ" },
+        { type: "choice", q: "เทคนิคเลือกข้อความ ทั้งย่อหน้า (Paragraph) ต้องทำอย่างไร?", target: "ทริปเปิลคลิก (คลิกซ้าย 3 ครั้งติดกัน)", options: ["ทริปเปิลคลิก (คลิกซ้าย 3 ครั้งติดกัน)", "ดับเบิลคลิก", "กด Enter 2 ครั้ง", "กด Spacebar"], hintTitle: "คลิก 3 ครั้ง", hintText: "ทริปเปิลคลิก = เลือกทั้งย่อหน้า" },
+        { type: "choice", q: "หากต้องการพิมพ์ตัวอักษรภาษาไทยแถวบนบนแป้นพิมพ์ ต้องกดปุ่มใดค้างไว้?", target: "ปุ่ม Shift", options: ["ปุ่ม Shift", "ปุ่ม Ctrl", "ปุ่ม Alt", "ปุ่ม Tab"], hintTitle: "ปุ่ม Shift", hintText: "กด Shift ค้างไว้เพื่อพิมพ์ตัวแถวบน" },
+        { type: "choice", q: "หากต้องการยกเลิกการเลือกข้อความ (ยกเลิกคลุมดำ) ต้องทำอย่างไร?", target: "คลิกเมาส์ซ้ายที่พื้นที่ว่าง 1 ครั้ง", options: ["คลิกเมาส์ซ้ายที่พื้นที่ว่าง 1 ครั้ง", "กด Enter", "กด Backspace", "ปิดโปรแกรม"], hintTitle: "ยกเลิกคลุมดำ", hintText: "คลิกตรงพื้นที่ว่าง 1 ครั้ง" }
+      ],
+      4: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากคำสั่งตกแต่งไปวางให้ตรงกับภาพข้อความตัวหนา", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-weight:900; font-size:1.4rem; text-align:center;"><b>ตัวอักษรหนาเน้นความสนใจ</b></div>`, target: "Bold (ตัวหนา)", items: ["Bold (ตัวหนา)", "Italic (ตัวเอียง)", "Underline (ขีดเส้นใต้)"], hintTitle: "Bold", hintText: "Bold ทำตัวอักษรให้หนาขึ้น" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากคำสั่งตกแต่งไปวางให้ตรงกับภาพข้อความตัวเอียง", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-style:italic; font-size:1.4rem; text-align:center;"><i>ตัวอักษรเอนเอียงสไตล์เฉพาะ</i></div>`, target: "Italic (ตัวเอียง)", items: ["Italic (ตัวเอียง)", "Bold (ตัวหนา)", "Underline (ขีดเส้นใต้)"], hintTitle: "Italic", hintText: "Italic ทำตัวอักษรให้เอนเอียง" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคำสั่งตกแต่งไปวางให้ตรงกับภาพข้อความขีดเส้นใต้", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; text-decoration:underline; font-size:1.4rem; text-align:center;"><u>ข้อความขีดเส้นใต้เน้นความสำคัญ</u></div>`, target: "Underline (ขีดเส้นใต้)", items: ["Underline (ขีดเส้นใต้)", "Bold (ตัวหนา)", "Italic (ตัวเอียง)"], hintTitle: "Underline", hintText: "Underline ขีดเส้นใต้ข้อความ" },
+        
+        { type: "iconChoice", q: "สัญลักษณ์เครื่องมือในข้อใดทำหน้าที่ ขีดเส้นใต้ข้อความ (Underline)?", target: "Underline Icon", options: [{ text: "Underline Icon", svg: svgIconsDB.underline }, { text: "Bold Icon", svg: svgIconsDB.bold }, { text: "Italic Icon", svg: svgIconsDB.italic }, { text: "Align Left Icon", svg: svgIconsDB.alignLeft }], hintTitle: "Underline Icon", hintText: "สัญลักษณ์รูปตัว U มีเส้นใต้" },
+        { type: "imgChoice", q: "จากภาพ เครื่องมือรูปแปรงทาสี (Format Painter) มีไว้ทำหน้าที่อะไร?", imgSvg: `<div class="question-img-banner"><svg class="svg-icon" style="width:40px; height:40px; color:#1d4ed8;" viewBox="0 0 24 24"><path d="M18 4V3c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V6h1v4h-9v11c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-9h5c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1h-1z"/></svg></div>`, target: "คัดลอกรูปแบบและสไตล์ข้อความ", options: ["คัดลอกรูปแบบและสไตล์ข้อความ", "ระบายสีพื้นหลังกระดาษ", "วาดภาพระบายสี", "ลบตัวหนังสือ"], hintTitle: "Format Painter", hintText: "แปรงคัดลอกเฉพาะรูปแบบตัวอักษร" },
+        { type: "choice", q: "ตัวอย่างฟอนต์สไตล์ราชการไทยที่เป็นมาตรฐานภาครัฐคือฟอนต์ใด?", target: "TH Sarabun PSK", options: ["TH Sarabun PSK", "Angsana New", "Cordia New", "Jasmineic"], hintTitle: "TH Sarabun PSK", hintText: "ฟอนต์มาตรฐานเอกสารราชการไทย" },
+        { type: "choice", q: "คำสั่ง ตัวยก (Superscript) เช่น พิมพ์เลขยกกำลัง X² ใช้คีย์ลัดใด?", target: "Ctrl + Shift + +", options: ["Ctrl + Shift + +", "Ctrl + =", "Ctrl + Alt + S", "Ctrl + P"], hintTitle: "Superscript", hintText: "Ctrl + Shift + + ทำตัวยกด้านบน" },
+        { type: "choice", q: "หากต้องการล็อกเครื่องมือแปรง Format Painter ให้ใช้งานต่อเนื่องได้หลายครั้ง ต้องทำอย่างไร?", target: "ดับเบิลคลิก (คลิกซ้าย 2 ครั้ง) ที่ไอคอนแปรง", options: ["ดับเบิลคลิก (คลิกซ้าย 2 ครั้ง) ที่ไอคอนแปรง", "คลิกขวา", "กด Enter ค้างไว้", "กด Spacebar"], hintTitle: "ล็อกแปรง", hintText: "ดับเบิลคลิกที่ไอคอนแปรงเพื่อล็อก" },
+        { type: "choice", q: "ขนาดฟอนต์มาตรฐานสำหรับพิมพ์เนื้อหารายงานภาษาไทยทั่วไปคือขนาดใด?", target: "16pt", options: ["16pt", "24pt", "12pt", "18pt"], hintTitle: "ขนาดฟอนต์ 16pt", hintText: "เนื้อหารายงานใช้ขนาด 16pt" },
+        { type: "choice", q: "เครื่องมือ Clear All Formatting มีไว้ทำหน้าที่ใด?", target: "ล้างรูปแบบการตกแต่งทั้งหมดให้กลับคืนเป็นค่าเริ่มต้น", options: ["ล้างรูปแบบการตกแต่งทั้งหมดให้กลับคืนเป็นค่าเริ่มต้น", "ลบตัวอักษรทิ้ง", "ลบรูปภาพ", "เปลี่ยนสีฟอนต์เป็นสีดำ"], hintTitle: "Clear Formatting", hintText: "ล้างค่าตกแต่งทั้งหมดกลับเป็นค่าเริ่มต้น" }
+      ],
+      5: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากรูปแบบการจัดแนวย่อหน้าไปวางให้ตรงกับภาพเส้นจัดชิดซ้าย", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; text-align:left; font-size:0.85rem; font-weight:800;">=== บรรทัดชิดซ้าย ===<br>== บรรทัดชิดซ้าย ==</div>`, target: "Align Left (ชิดซ้าย)", items: ["Align Left (ชิดซ้าย)", "Center (จัดกึ่งกลาง)", "Align Right (ชิดขวา)"], hintTitle: "Align Left", hintText: "จัดเรียบชิดขอบซ้าย" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากรูปแบบการจัดแนวย่อหน้าไปวางให้ตรงกับภาพเส้นจัดกึ่งกลาง", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; text-align:center; font-size:0.85rem; font-weight:800;">=== จัดตรงกลาง ===<br>== จัดตรงกลาง ==</div>`, target: "Center (จัดกึ่งกลาง)", items: ["Center (จัดกึ่งกลาง)", "Align Left (ชิดซ้าย)", "Align Right (ชิดขวา)"], hintTitle: "Center", hintText: "จัดข้อความอยู่กึ่งกลาง" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากรูปแบบการจัดแนวย่อหน้าไปวางให้ตรงกับภาพเส้นจัดชิดขวา", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; text-align:right; font-size:0.85rem; font-weight:800;">=== บรรทัดชิดขวา ===<br>== บรรทัดชิดขวา ==</div>`, target: "Align Right (ชิดขวา)", items: ["Align Right (ชิดขวา)", "Align Left (ชิดซ้าย)", "Center (จัดกึ่งกลาง)"], hintTitle: "Align Right", hintText: "จัดเรียบชิดขอบขวา" },
+        
+        { type: "iconChoice", q: "หากต้องการจัดข้อความให้อยู่ กึ่งกลางหน้ากระดาษ (Center) ต้องกดไอคอนใด?", target: "Center Icon", options: [{ text: "Center Icon", svg: svgIconsDB.alignCenter }, { text: "Align Left Icon", svg: svgIconsDB.alignLeft }, { text: "Align Right Icon", svg: svgIconsDB.alignRight }, { text: "Table Icon", svg: svgIconsDB.table }], hintTitle: "Center Icon", hintText: "สัญลักษณ์เส้นจัดกึ่งกลาง" },
+        { type: "imgChoice", q: "จากภาพตัวอย่างการจัดย่อหน้า เรียกว่ารูปแบบใด?", imgSvg: `<div class="question-img-banner"><div style="text-align:justify; font-size:0.85rem; font-weight:800; color:#0f172a; width:100%;">ข้อความพิมพ์กระจายเรียบเท่ากันทั้งขอบซ้ายและขอบขวาอย่างเป็นระเบียบสวยงาม</div></div>`, target: "Justify (กระจายเท่ากันสองข้าง)", options: ["Justify (กระจายเท่ากันสองข้าง)", "Align Left (ชิดซ้าย)", "Align Right (ชิดขวา)", "Center (กึ่งกลาง)"], hintTitle: "Justify", hintText: "กระจายข้อความเรียบเท่ากันทั้งสองข้าง" },
+        { type: "choice", q: "คีย์ลัดใดใช้จัดข้อความให้อยู่ กึ่งกลางหน้ากระดาษ (Center)?", target: "Ctrl + E", options: ["Ctrl + L", "Ctrl + E", "Ctrl + R", "Ctrl + J"], hintTitle: "Ctrl + E", hintText: "Ctrl + E = Center Align" },
+        { type: "choice", q: "คีย์ลัดใดใช้จัดข้อความให้ ชิดขอบซ้าย (Align Left)?", target: "Ctrl + L", options: ["Ctrl + L", "Ctrl + R", "Ctrl + J", "Ctrl + E"], hintTitle: "Ctrl + L", hintText: "Ctrl + L = Align Left" },
+        { type: "choice", q: "คำสั่ง Thai Distributed (กระจายแบบไทย) เหมาะสำหรับงานแบบใด?", target: "กระจายช่องไฟพยัญชนะไทยให้เต็มบรรทัดสวยงาม", options: ["กระจายช่องไฟพยัญชนะไทยให้เต็มบรรทัดสวยงาม", "พิมพ์ภาษาอังกฤษ", "ใส่สีตัวหนังสือ", "สร้างตาราง"], hintTitle: "กระจายแบบไทย", hintText: "คำนวณระยะพยัญชนะสระไทยให้สวยงาม" },
+        { type: "choice", q: "ระยะห่างบรรทัดมาตรฐาน (Line Spacing) ในรายงานภาษาไทย ควรตั้งค่าเท่าใด?", target: "1.15 หรือ 1.5 บรรทัด", options: ["1.15 หรือ 1.5 บรรทัด", "3.0 บรรทัด", "0.5 บรรทัด", "2.5 บรรทัด"], hintTitle: "ระยะห่างบรรทัด", hintText: "มาตรฐานใช้ 1.15 หรือ 1.5" },
+        { type: "choice", q: "หากต้องการย่อหน้าบรรทัดแรกเข้ามาด้านใน ปุ่มใดบนคีย์บอร์ดใช้ย่อหน้าได้ทันที?", target: "ปุ่ม Tab", options: ["ปุ่ม Tab", "ปุ่ม Spacebar", "ปุ่ม Shift", "ปุ่ม Enter"], hintTitle: "ปุ่ม Tab", hintText: "กด Tab 1 ครั้ง ย่อหน้าตามมาตรฐาน" }
+      ],
+      6: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากเครื่องมือประเภทหัวข้อไปวางให้ตรงกับภาพรายการจุด Bullets", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-weight:800; font-size:0.9rem;">● รายการสินค้า A<br>● รายการสินค้า B</div>`, target: "Bullets (หัวข้อย่อย)", items: ["Bullets (หัวข้อย่อย)", "Numbering (ลำดับเลข)", "Multilevel List"], hintTitle: "Bullets", hintText: "ทำรายการสัญลักษณ์จุด" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากเครื่องมือประเภทหัวข้อไปวางให้ตรงกับภาพรายการตัวเลข Numbering", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-weight:800; font-size:0.9rem;">1. ขั้นตอนที่หนึ่ง<br>2. ขั้นตอนที่สอง</div>`, target: "Numbering (ลำดับเลข)", items: ["Numbering (ลำดับเลข)", "Bullets (หัวข้อย่อย)", "Multilevel List"], hintTitle: "Numbering", hintText: "ทำรายการเรียงลำดับตัวเลข" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากปุ่มคีย์บอร์ดไปวางให้ตรงกับหน้าที่การเพิ่มระดับย่อหน้ารายการย่อย", imgSvg: `<div style="background:#f8fafc; border:2px solid #cbd5e1; padding:10px; border-radius:10px; font-weight:900; text-align:center;">[ TAB ]</div>`, target: "เพิ่มระดับย่อหน้า (Indent)", items: ["เพิ่มระดับย่อหน้า (Indent)", "ลบรายการ", "ลดระดับย่อหน้า"], hintTitle: "ปุ่ม Tab", hintText: "กด Tab เพื่อเพิ่มระดับย่อหน้า" },
+        
+        { type: "iconChoice", q: "สัญลักษณ์ไอคอนใดคือเครื่องมือสร้าง สัญลักษณ์หัวข้อย่อย (Bullets)?", target: "Bullets Icon", options: [{ text: "Bullets Icon", svg: svgIconsDB.bullets }, { text: "Numbering Icon", svg: svgIconsDB.numbering }, { text: "Align Center Icon", svg: svgIconsDB.alignCenter }, { text: "Table Icon", svg: svgIconsDB.table }], hintTitle: "Bullets Icon", hintText: "สัญลักษณ์รูปรายการจุดสีดำ" },
+        { type: "imgChoice", q: "เครื่องมือในภาพนี้ (Sort A-Z) มีไว้ใช้ทำหน้าที่ใด?", imgSvg: `<div class="question-img-banner"><svg class="svg-icon" style="width:38px; height:38px; color:#1d4ed8;" viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></div>`, target: "เรียงลำดับข้อความ ก-ฮ หรือ A-Z", options: ["เรียงลำดับข้อความ ก-ฮ หรือ A-Z", "เปลี่ยนภาษา", "ขยายขนาดฟอนต์", "ตรวจคำผิด"], hintTitle: "Sort (A-Z)", hintText: "ใช้เรียงลำดับข้อมูลตามตัวอักษร" },
+        { type: "choice", q: "หากต้องการ ถอยหัวข้อย่อยกลับขึ้นมา เป็นหัวข้อระดับบน ต้องกดปุ่มใด?", target: "Shift + Tab", options: ["Shift + Tab", "Ctrl + Tab", "Alt + Tab", "Spacebar"], hintTitle: "Shift + Tab", hintText: "Shift + Tab ถอยย่อหน้ากลับขึ้นมา" },
+        { type: "choice", q: "Multilevel List (รายการหลายระดับ) เหมาะสำหรับงานแบบใด?", target: "การทำโครงร่างบทเรียนที่มีหัวข้อหลักและหัวข้อย่อยซ้อนกันหลายชั้น", options: ["การทำโครงร่างบทเรียนที่มีหัวข้อหลักและหัวข้อย่อยซ้อนกันหลายชั้น", "การพิมพ์ข้อความบรรทัดเดียว", "การวาดรูป", "การใส่สีพื้นหลัง"], hintTitle: "Multilevel List", hintText: "ทำโครงร่างซ้อนหลายชั้น เช่น 1.1, 1.1.1" },
+        { type: "choice", q: "สัญลักษณ์หัวข้อย่อย (Bullets) สามารถเปลี่ยนเป็นรูปภาพอื่นได้หรือไม่?", target: "ทำได้ โดยเลือก Define New Bullet", options: ["ทำได้ โดยเลือก Define New Bullet", "ไม่ได้ ใช้ได้แค่จุดสีดำ", "ทำได้เฉพาะภาษาอังกฤษ", "ต้องซื้อโปรแกรมเพิ่ม"], hintTitle: "Define New Bullet", hintText: "เปลี่ยนรูปสัญลักษณ์ใหม่ได้" },
+        { type: "choice", q: "หากต้องการยกเลิกการทำรายการหัวข้อย่อยในบรรทัดถัดไป ต้องทำอย่างไร?", target: "กดปุ่ม Enter ซ้ำ 2 ครั้ง", options: ["กดปุ่ม Enter ซ้ำ 2 ครั้ง", "กดปุ่ม Esc", "ปิดโปรแกรม", "กด Spacebar 5 ครั้ง"], hintTitle: "ยกเลิกหัวข้อย่อย", hintText: "กด Enter ซ้ำ 2 ครั้งเพื่อยกเลิก" },
+        { type: "choice", q: "ข้อดีหลักของการใช้ระบบ Numbering อัตโนมัติคืออะไร?", target: "เมื่อแทรกหรือลบข้อความ ลำดับตัวเลขจะปรับให้อัตโนมัติ", options: ["เมื่อแทรกหรือลบข้อความ ลำดับตัวเลขจะปรับให้อัตโนมัติ", "ตัวหนังสือกลายเป็นสีแดง", "ประหยัดหมึกพิมพ์", "เปลี่ยนฟอนต์ให้อัตโนมัติ"], hintTitle: "ข้อดี Numbering", hintText: "ระบบรันตัวเลขปรับให้อัตโนมัติ" }
+      ],
+      7: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากรูปแบบ Wrap Text ไปวางให้ตรงกับภาพข้อความล้อมรอบกรอบรูปทรงสี่เหลี่ยม", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:12px; border-radius:10px; font-weight:800; font-size:0.85rem; text-align:center;">[ ภาพสี่เหลี่ยมตรงกลาง ]<br>ข้อความล้อมรอบกรอบสี่เหลี่ยมอย่างมีระเบียบ</div>`, target: "Square (สี่เหลี่ยม)", items: ["Square (สี่เหลี่ยม)", "Behind Text (หลังข้อความ)", "In Front of Text"], hintTitle: "Wrap Text: Square", hintText: "ล้อมรอบรูปภาพเป็นสี่เหลี่ยม" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากรูปแบบ Wrap Text ไปวางให้ตรงกับภาพรูปภาพซ่อนอยู่หลังข้อความแบบลายน้ำ", imgSvg: `<div style="background:#f1f5f9; border:2px solid #cbd5e1; padding:12px; border-radius:10px; font-weight:800; font-size:0.85rem; text-align:center; color:#475569;">ตัวอักษรลอยทับอยู่บนรูปภาพฉากหลัง</div>`, target: "Behind Text", items: ["Behind Text", "Square", "In Front of Text"], hintTitle: "Behind Text", hintText: "รูปภาพย้ายไปเป็นฉากหลัง" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากชื่อคำสั่งไปวางให้ตรงกับคำสั่งครอบตัดส่วนเกินของรูปภาพออก", imgSvg: `<div style="background:#fff; border:2px dashed #ef4444; padding:10px; border-radius:10px; font-weight:800; text-align:center; color:#ef4444;">[ ตัดสัดส่วนขอบภาพออก ]</div>`, target: "Crop (ครอบตัด)", items: ["Crop (ครอบตัด)", "Rotate (หมุน)", "Resize (ย่อขยาย)"], hintTitle: "Crop", hintText: "Crop ตัดส่วนเกินของรูปภาพออก" },
+        
+        { type: "iconChoice", q: "สัญลักษณ์เครื่องมือในข้อใดใช้สำหรับการ แทรกรูปภาพ (Picture)?", target: "Picture Icon", options: [{ text: "Picture Icon", svg: svgIconsDB.picture }, { text: "Table Icon", svg: svgIconsDB.table }, { text: "Print Icon", svg: svgIconsDB.print }, { text: "Save Icon", svg: svgIconsDB.save }], hintTitle: "Picture Icon", hintText: "สัญลักษณ์รูปภาพวิวธรรมชาติ" },
+        { type: "imgChoice", q: "จากภาพ เครื่องมือ Crop สัญลักษณ์นี้ใช้ทำอะไรกับรูปภาพ?", imgSvg: `<div class="question-img-banner"><svg class="svg-icon" style="width:38px; height:38px; color:#1d4ed8;" viewBox="0 0 24 24"><path d="M17 15h2V7c0-1.1-.9-2-2-2H9v2h8v8zM7 17V1H5v4H1v2h4v10c0 1.1.9 2 2 2h10v4h2v-4h4v-2H7z"/></svg></div>`, target: "ครอบตัดส่วนเกินของรูปภาพออก", options: ["ครอบตัดส่วนเกินของรูปภาพออก", "หมุนภาพ 90 องศา", "ลบรูปภาพทิ้ง", "ปรับภาพเป็นสีขาวดำ"], hintTitle: "Crop Tool", hintText: "ใช้ครอบตัดขอบภาพส่วนที่ไม่ต้องการ" },
+        { type: "choice", q: "หากต้องการย้ายรูปภาพลอยไปวางตรงไหนก็ได้โดยทับอยู่ข้างหน้าข้อความ ควรเลือกคำสั่งใด?", target: "In Front of Text", options: ["In Front of Text", "In Line with Text", "Behind Text", "Square"], hintTitle: "In Front of Text", hintText: "ดึงภาพลอยทับอยู่ข้างหน้าข้อความ" },
+        { type: "choice", q: "หลักการย่อ-ขยายรูปภาพ ไม่ให้เสียสัดส่วน (เบี้ยว) ต้องลากดึงที่จุดใด?", target: "จุดดึงตรงมุมทั้ง 4 มุมของรูปภาพ", options: ["จุดดึงตรงมุมทั้ง 4 มุมของรูปภาพ", "จุดดึงกึ่งกลางด้านข้าง", "จุดดึงกึ่งกลางด้านบน", "ดึงตรงไหนก็ได้"], hintTitle: "ย่อขยายภาพ", hintText: "ดึงจุดที่มุมทั้ง 4 เพื่อรักษาอัตราส่วน" },
+        { type: "choice", q: "หากแทรกรูปภาพเข้ามาแล้ว ลากย้ายรูปภาพไปไหนไม่ได้ เป็นเพราะเหตุใด?", target: "รูปภาพยังตั้งค่าเป็น In Line with Text (บรรทัดเดียวกับอักษร)", options: ["รูปภาพยังตั้งค่าเป็น In Line with Text (บรรทัดเดียวกับอักษร)", "โปรแกรมค้าง", "รูปภาพขนาดใหญ่เกินไป", "คอมพิวเตอร์ติดไวรัส"], hintTitle: "ย้ายภาพไม่ได้", hintText: "รูปแรกแทรกจะเป็น In Line with Text ต้องเปลี่ยนก่อน" },
+        { type: "choice", q: "การแทรกรูปภาพจากไฟล์ในคอมพิวเตอร์ ต้องไปที่แท็บเมนูใด?", target: "Insert (แทรก) > Pictures (รูปภาพ)", options: ["Insert (แทรก) > Pictures (รูปภาพ)", "Home (หน้าแรก) > Font", "Layout > Margins", "View > Zoom"], hintTitle: "เมนูแทรกภาพ", hintText: "ไปที่ Insert > Pictures" },
+        { type: "choice", q: "คำสั่ง Reset Picture ในแท็บ Picture Format มีไว้ทำอะไร?", target: "ยกเลิกการแต่งสีและเอฟเฟกต์ทั้งหมดเพื่อคืนค่าภาพต้นฉบับ", options: ["ยกเลิกการแต่งสีและเอฟเฟกต์ทั้งหมดเพื่อคืนค่าภาพต้นฉบับ", "ลบรูปภาพทิ้ง", "บันทึกรูปภาพ", "หมุนภาพ"], hintTitle: "Reset Picture", hintText: "ยกเลิกการแต่งสี คืนค่ารูปต้นฉบับ" }
+      ],
+      8: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากคำศัพท์โครงสร้างตารางไปวางให้ตรงกับภาพตารางในแนวตั้ง", imgSvg: `<div style="background:#fff; border:2px solid #38bdf8; padding:10px; border-radius:10px; text-align:center; font-weight:800;">[ ช่องตารางในแนวตั้ง | | | ]</div>`, target: "คอลัมน์ (Column)", items: ["คอลัมน์ (Column)", "แถว (Row)", "เซลล์ (Cell)"], hintTitle: "คอลัมน์ Column", hintText: "ช่องตารางในแนวตั้ง = คอลัมน์" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากคำศัพท์โครงสร้างตารางไปวางให้ตรงกับภาพตารางในแนวนอน", imgSvg: `<div style="background:#fff; border:2px solid #38bdf8; padding:10px; border-radius:10px; text-align:center; font-weight:800;">[ ช่องตารางในแนวนอน ═══ ]</div>`, target: "แถว (Row)", items: ["แถว (Row)", "คอลัมน์ (Column)", "เซลล์ (Cell)"], hintTitle: "แถว Row", hintText: "ช่องตารางในแนวนอน = แถว" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคำสั่งตารางไปวางให้ตรงกับภาพการรวมช่องเซลล์เข้าด้วยกัน", imgSvg: `<div style="background:#d1fae5; border:2px solid #10b981; padding:12px; border-radius:10px; text-align:center; font-weight:800; color:#047857;">[ รวมช่องเซลล์ย่อยให้กลายเป็นช่องใหญ่ ]</div>`, target: "Merge Cells (ผสานเซลล์)", items: ["Merge Cells (ผสานเซลล์)", "Split Cells (แยกเซลล์)", "Delete Table"], hintTitle: "Merge Cells", hintText: "รวมช่องหลายช่องให้เป็นช่องเดียว" },
+        
+        { type: "iconChoice", q: "หากต้องการสร้าง ตารางข้อมูล (Table) ลงในเอกสาร ต้องกดเลือกไอคอนใด?", target: "Table Icon", options: [{ text: "Table Icon", svg: svgIconsDB.table }, { text: "Picture Icon", svg: svgIconsDB.picture }, { text: "Bullets Icon", svg: svgIconsDB.bullets }, { text: "Print Icon", svg: svgIconsDB.print }], hintTitle: "Table Icon", hintText: "สัญลักษณ์รูปตารางช่องสี่เหลี่ยม" },
+        { type: "imgChoice", q: "จากภาพคำสั่ง Merge Cells ในการจัดการตาราง มีไว้ทำหน้าที่อะไร?", imgSvg: `<div class="question-img-banner"><div style="background:#e0f2fe; border:2px solid #0284c7; padding:8px 16px; font-weight:800; border-radius:10px;">Merge Cells</div></div>`, target: "ผสานรวมช่องเซลล์หลายช่องเป็นช่องเดียว", options: ["ผสานรวมช่องเซลล์หลายช่องเป็นช่องเดียว", "แบ่งช่องเซลล์เพิ่ม", "ลบตารางทิ้ง", "ใส่สีเส้นขอบ"], hintTitle: "Merge Cells", hintText: "รวมช่องย่อยให้เป็นช่องใหญ่ช่องเดียว" },
+        { type: "choice", q: "ช่องสี่เหลี่ยมแต่ละช่องที่เกิดจากการตัดกันของแถวและคอลัมน์ เรียกว่าอะไร?", target: "เซลล์ (Cell)", options: ["เซลล์ (Cell)", "กรอบ (Frame)", "บล็อก (Block)", "กล่อง (Box)"], hintTitle: "เซลล์ Cell", hintText: "ช่องแต่ละช่องเรียกว่า เซลล์ (Cell)" },
+        { type: "choice", q: "คำสั่ง Split Cells (แยกเซลล์) มีไว้ทำหน้าที่อะไร?", target: "แบ่งช่องเซลล์ 1 ช่องให้ออกเป็นหลายแถวหรือคอลัมน์ย่อย", options: ["แบ่งช่องเซลล์ 1 ช่องให้ออกเป็นหลายแถวหรือคอลัมน์ย่อย", "รวมตาราง", "ลบตาราง", "ใส่สีตาราง"], hintTitle: "Split Cells", hintText: "แบ่งช่องย่อยเพิ่มขึ้นในเซลล์" },
+        { type: "choice", q: "เทคนิคเพิ่มแถวใหม่ในตารางอย่างรวดเร็ว สามารถทำได้อย่างไร?", target: "วางเคอร์เซอร์ช่องขวาล่างสุดแล้วกดปุ่ม Tab", options: ["วางเคอร์เซอร์ช่องขวาล่างสุดแล้วกดปุ่ม Tab", "กด Enter 10 ครั้ง", "กดปุ่ม Delete", "ดับเบิลคลิก"], hintTitle: "เพิ่มแถวด่วน", hintText: "วางช่องขวาล่างสุดแล้วกด Tab" },
+        { type: "choice", q: "การลบตารางทั้งหลังอย่างรวดเร็ว ต้องใช้คำสั่งใด?", target: "Delete Table", options: ["Delete Table", "Press Backspace", "Clear Contents", "Delete Font"], hintTitle: "Delete Table", hintText: "เลือกคำสั่ง Delete Table" },
+        { type: "choice", q: "แท็บ Table Design ใช้ทำหน้าที่อะไร?", target: "ตกแต่งสีเส้นขอบ สีเทาแรเงา และสไตล์สำเร็จรูปของตาราง", options: ["ตกแต่งสีเส้นขอบ สีเทาแรเงา และสไตล์สำเร็จรูปของตาราง", "เปลี่ยนขนาดกระดาษ", "ตรวจคำผิด", "ใส่เลขหน้า"], hintTitle: "Table Design", hintText: "ตกแต่งสีเส้นและแรเงาตาราง" }
+      ],
+      9: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากคำสั่งแนวตั้ง/แนวนอนไปวางให้ตรงกับภาพกระดาษแนวตั้ง", imgSvg: `<div class="paper-preview-mini paper-portrait"><div style="width:100%; height:8px; background:#bae6fd; margin-bottom:4px;"></div><div style="width:80%; height:4px; background:#e2e8f0;"></div></div>`, target: "Portrait (แนวตั้ง)", items: ["Portrait (แนวตั้ง)", "Landscape (แนวนอน)", "Columns"], hintTitle: "Portrait", hintText: "Portrait = กระดาษแนวตั้ง" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากคำสั่งแนวตั้ง/แนวนอนไปวางให้ตรงกับภาพกระดาษแนวนอน", imgSvg: `<div class="paper-preview-mini paper-landscape"><div style="width:100%; height:8px; background:#bae6fd; margin-bottom:4px;"></div><div style="width:80%; height:4px; background:#e2e8f0;"></div></div>`, target: "Landscape (แนวนอน)", items: ["Landscape (แนวนอน)", "Portrait (แนวตั้ง)", "Columns"], hintTitle: "Landscape", hintText: "Landscape = กระดาษแนวนอน" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคำสั่งไปวางให้ตรงกับหน้าที่เว้นระยะขอบกระดาษ", imgSvg: `<div style="background:#fff; border:2px dashed #0284c7; padding:10px; border-radius:10px; text-align:center; font-weight:800;">[ ระยะขอบกระดาษเว้นรอบด้าน ]</div>`, target: "Margins (ระยะขอบ)", items: ["Margins (ระยะขอบ)", "Page Break", "Paper Size"], hintTitle: "Margins", hintText: "Margins = ระยะขอบกระดาษ" },
+        
+        { type: "imgChoice", q: "จากภาพไอคอน Margins ใช้สำหรับตั้งค่าส่วนใดของเอกสาร?", imgSvg: `<div class="question-img-banner"><svg class="svg-icon" style="width:38px; height:38px; color:#1d4ed8;" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7zm0 4h10v2H7z"/></svg></div>`, target: "Margins (ระยะขอบกระดาษ)", options: ["Margins (ระยะขอบกระดาษ)", "Orientation (วางแนว)", "Size (ขนาดกระดาษ)", "Columns (คอลัมน์)"], hintTitle: "Margins", hintText: "การเว้นระยะขอบกระดาษเข้ามา" },
+        { type: "iconChoice", q: "หากต้องการสลับทิศทางกระดาษเป็นแนวตั้งหรือแนวนอน ควรเลือกใช้คำสั่งใด?", target: "Orientation", options: [{ text: "Orientation", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>` }, { text: "Margins", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>` }, { text: "Table", svg: svgIconsDB.table }, { text: "Print", svg: svgIconsDB.print }], hintTitle: "Orientation", hintText: " Orientation สลับแนวตั้ง/แนวนอน" },
+        { type: "choice", q: "ขนาดกระดาษมาตรฐานที่นิยมใช้พิมพ์รายงานวิชาการมากที่สุดคือขนาดใด?", target: "A4", options: ["A4", "A3", "Letter", "B5"], hintTitle: "ขนาดกระดาษ A4", hintText: "ขนาดมาตรฐานพิมพ์รายงานคือ A4" },
+        { type: "choice", q: "กลุ่มคำสั่ง Page Setup (ตั้งค่าหน้ากระดาษ) รวมอยู่ในแท็บเมนูใด?", target: "Layout (เค้าโครง)", options: ["Layout (เค้าโครง)", "Home (หน้าแรก)", "Insert (แทรก)", "View"], hintTitle: "Layout", hintText: "ตั้งค่ากระดาษอยู่ในแท็บ Layout" },
+        { type: "choice", q: "ในการตั้งค่าระยะขอบกระดาษทำเล่มรายงาน ด้านใดควรเว้นระยะเผื่อเย็บเล่ม?", target: "ขอบด้านซ้าย (Left Margin)", options: ["ขอบด้านซ้าย (Left Margin)", "ขอบด้านขวา", "ขอบด้านล่าง", "ขอบด้านบน"], hintTitle: "เผื่อเย็บเล่ม", hintText: "ขอบซ้ายเว้นเผื่อเข้าเล่มรายงาน" },
+        { type: "choice", q: "คำสั่ง Columns (คอลัมน์) ในแท็บ Layout มีไว้ทำอะไร?", target: "แบ่งหน้ากระดาษออกเป็นหลายคอลัมน์เหมือนหนังสือพิมพ์", options: ["แบ่งหน้ากระดาษออกเป็นหลายคอลัมน์เหมือนหนังสือพิมพ์", "สร้างตาราง", "ใส่สีพื้นหลัง", "ย่อขยายฟอนต์"], hintTitle: "Columns", hintText: "แบ่งหน้ากระดาษเป็นหลายคอลัมน์" },
+        { type: "choice", q: "คำสั่ง Breaks > Page Break มีไว้ใช้ทำหน้าที่อะไร?", target: "ขึ้นหน้ากระดาษแผ่นใหม่ทันทีโดยไม่ต้องกด Enter หลายครั้ง", options: ["ขึ้นหน้ากระดาษแผ่นใหม่ทันทีโดยไม่ต้องกด Enter หลายครั้ง", "ลบหน้ากระดาษ", "บันทึกไฟล์", "เปลี่ยนสีฟอนต์"], hintTitle: "Page Break", hintText: "สั่งขึ้นหน้ากระดาษใหม่ทันที" }
+      ],
+      10: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากสาเหตุข้อผิดพลาดไปวางให้ตรงกับภาพเส้นใต้หยักสีแดง", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-weight:900; color:#ef4444; text-decoration:underline dashed #ef4444; text-align:center;">คำที่สะกดผิดพลาดในงานพิมพ์</div>`, target: "สะกดคำผิด (Spelling)", items: ["สะกดคำผิด (Spelling)", "เว้นวรรคผิด (Grammar)", "ใส่รูปภาพผิด"], hintTitle: "เส้นใต้สีแดง", hintText: "เส้นใต้สีแดง = เตือนสะกดคำผิด" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากสาเหตุข้อผิดพลาดไปวางให้ตรงกับภาพเส้นใต้หยักสีฟ้า", imgSvg: `<div style="background:#fff; border:2px solid #bae6fd; padding:10px; border-radius:10px; font-weight:900; color:#0284c7; text-decoration:underline dashed #0284c7; text-align:center;">ข้อความที่  เว้นวรรคเกินมาตรฐาน</div>`, target: "เว้นวรรคผิด (Grammar)", items: ["เว้นวรรคผิด (Grammar)", "สะกดคำผิด (Spelling)", "ฟอนต์ไม่ถูกต้อง"], hintTitle: "เส้นใต้สีฟ้า", hintText: "เส้นใต้สีฟ้า = เตือนเว้นวรรค/ไวยากรณ์" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคีย์ลัดไปวางให้ตรงกับคำสั่ง ค้นหาและแทนที่คำผิด (Replace)", imgSvg: `<div style="background:#e0f2fe; padding:10px; border-radius:10px; font-weight:800; text-align:center;">คำสั่ง: ค้นหาและแทนที่คำผิด (Replace)</div>`, target: "Ctrl + H", items: ["Ctrl + H", "Ctrl + F", "Ctrl + G"], hintTitle: "Ctrl + H", hintText: "Ctrl + H = แทนที่คำผิด" },
+        
+        { type: "iconChoice", q: "หากต้องการเปิดเครื่องมือ ตรวจสะกดและไวยากรณ์ (Spelling & Grammar) ควรเลือกใช้ไอคอนใด?", target: "Spelling Icon", options: [{ text: "Spelling Icon", svg: svgIconsDB.spelling }, { text: "Print Icon", svg: svgIconsDB.print }, { text: "Save Icon", svg: svgIconsDB.save }, { text: "Table Icon", svg: svgIconsDB.table }], hintTitle: "Spelling Icon", hintText: "สัญลักษณ์ตรวจคำผิด ABC" },
+        { type: "imgChoice", q: "จากภาพ เครื่องมือ Find (Ctrl + F) รูปแว่นขยาย มีไว้ทำหน้าที่อะไร?", imgSvg: `<div class="question-img-banner"><svg class="svg-icon" style="width:38px; height:38px; color:#1d4ed8;" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>`, target: "ค้นหาข้อความหรือคำในเอกสาร", options: ["ค้นหาข้อความหรือคำในเอกสาร", "ซูมขยายหน้ากระดาษ", "ตรวจนับจำนวนรูปภาพ", "เปลี่ยนฟอนต์"], hintTitle: "Find Tool", hintText: "ค้นหาคำหรือข้อความที่ต้องการ" },
+        { type: "choice", q: "ปุ่มฟังก์ชันใดบนคีย์บอร์ด ใช้สั่งเปิดระบบตรวจสะกดและไวยากรณ์ (Spelling & Grammar)?", target: "ปุ่ม F7", options: ["ปุ่ม F7", "ปุ่ม F1", "ปุ่ม F5", "ปุ่ม F12"], hintTitle: "ปุ่ม F7", hintText: "กด F7 เปิดกล่องตรวจสะกด" },
+        { type: "choice", q: "หากพบเส้นใต้หยักสีแดงใต้ชื่อจริงของเรา สามารถแก้ไขไม่ให้เตือนได้อย่างไร?", target: "คลิกขวาแล้วเลือก Add to Dictionary (เพิ่มลงในพจนานุกรม)", options: ["คลิกขวาแล้วเลือก Add to Dictionary (เพิ่มลงในพจนานุกรม)", "ลบชื่อทิ้ง", "ปิดหน้าจอ", "เปลี่ยนชื่อใหม่"], hintTitle: "Add to Dictionary", hintText: "บันทึกชื่อเฉพาะเข้าพจนานุกรม" },
+        { type: "choice", q: "คำสั่ง Replace All ในหน้าต่าง Replace ทำหน้าที่อะไร?", target: "แทนที่คำผิดที่พบทุกจุดทั่วทั้งเอกสารในการคลิกครั้งเดียว", options: ["แทนที่คำผิดที่พบทุกจุดทั่วทั้งเอกสารในการคลิกครั้งเดียว", "เปลี่ยนเฉพาะจุดแรก", "ลบเอกสาร", "สั่งพิมพ์งาน"], hintTitle: "Replace All", hintText: "แทนที่คำผิดทุกจุดทั่วทั้งเล่ม" },
+        { type: "choice", q: "แท็บเมนูใดเป็นศูนย์รวมเครื่องมือ Spelling & Grammar และ Word Count?", target: "Review (ตรวจทาน)", options: ["Review (ตรวจทาน)", "Home (หน้าแรก)", "View (มุมมอง)", "Insert"], hintTitle: "Review", hintText: "รวมอยู่ในแท็บ Review" },
+        { type: "choice", q: "เครื่องมือ Word Count แสดงสถิติข้อมูลใดของเอกสารบ้าง?", target: "จำนวนหน้า, จำนวนคำ, จำนวนตัวอักษร และย่อหน้า", options: ["จำนวนหน้า, จำนวนคำ, จำนวนตัวอักษร และย่อหน้า", "ขนาดไฟล์ PDF", "ราคาหมึกพิมพ์", "ความเร็วอินเทอร์เน็ต"], hintTitle: "Word Count", hintText: "แสดงสถิติ จำนวนหน้า คำ ตัวอักษร" }
+      ],
+      11: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากสไตล์หัวข้อไปวางให้ตรงกับรูปแบบที่ใช้ทำสารบัญอัตโนมัติ", imgSvg: `<div style="background:#fff; border:2px solid #38bdf8; padding:10px; border-radius:10px; font-weight:900; font-size:1.2rem; color:#1d4ed8; text-align:center;">[ หัวข้อหลักประจำบทเรียน ]</div>`, target: "Heading 1 / Heading 2", items: ["Heading 1 / Heading 2", "Normal", "Title"], hintTitle: "Heading Styles", hintText: "กำหนดหัวข้อเป็น Heading 1 หรือ 2" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากแท็บเมนูไปวางให้ตรงกับตำแหน่งเครื่องมือ Table of Contents (สารบัญ)", imgSvg: `<div style="background:#1d4ed8; color:#fff; padding:10px; border-radius:10px; font-weight:800; text-align:center;">แท็บเมนูอ้างอิงเอกสาร</div>`, target: "References (การอ้างอิง)", items: ["References (การอ้างอิง)", "Insert (แทรก)", "Home (หน้าแรก)"], hintTitle: "References", hintText: "สารบัญอยู่ในแท็บ References" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคำสั่งอัปเดตไปวางให้ตรงกับปุ่มรีเฟรชเลขหน้าสารบัญ", imgSvg: `<div style="background:#e0f2fe; border:2px solid #0284c7; padding:10px; border-radius:10px; font-weight:800; text-align:center;">[ ปุ่มรีเฟรชอัปเดตเลขหน้าสารบัญ ]</div>`, target: "Update Table", items: ["Update Table", "Refresh Page", "Save As"], hintTitle: "Update Table", hintText: "กด Update Table รีเฟรชเลขหน้า" },
+        
+        { type: "imgChoice", q: "จากภาพ ปุ่ม Update Table ในการทำสารบัญอัตโนมัติ มีไว้ใช้ทำอะไร?", imgSvg: `<div class="question-img-banner"><div style="background:#e0f2fe; border:2px solid #0284c7; padding:8px 16px; font-weight:800; border-radius:10px;">Update Table...</div></div>`, target: "อัปเดตเลขหน้าและหัวข้อสารบัญให้ตรงกับเนื้อหาจริง", options: ["อัปเดตเลขหน้าและหัวข้อสารบัญให้ตรงกับเนื้อหาจริง", "ลบสารบัญทิ้ง", "เปลี่ยนสีฟอนต์", "สั่งพิมพ์เอกสาร"], hintTitle: "Update Table", hintText: "ปรับอัปเดตเลขหน้าให้ตรงตามจริง" },
+        { type: "iconChoice", q: "หากต้องการใส่ เลขหน้าเอกสาร (Page Number) ต้องเลือกคำสั่งในข้อใด?", target: "Page Number", options: [{ text: "Page Number", svg: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 8h-2v2h2v-2zm-4 0H9v2h2v-2z"/></svg>` }, { text: "Table Icon", svg: svgIconsDB.table }, { text: "Picture Icon", svg: svgIconsDB.picture }, { text: "Print Icon", svg: svgIconsDB.print }], hintTitle: "Page Number", hintText: "ใช้แทรกเลขหน้าอัตโนมัติ" },
+        { type: "choice", q: "ข้อดีหลักของการใช้ระบบสารบัญอัตโนมัติคืออะไร?", target: "เลขหน้าอัปเดตตรงกับเนื้อหาจริงให้อัตโนมัติเมื่อเอกสารเปลี่ยนแปลง", options: ["เลขหน้าอัปเดตตรงกับเนื้อหาจริงให้อัตโนมัติเมื่อเอกสารเปลี่ยนแปลง", "เปลี่ยนสีฟอนต์ให้อัตโนมัติ", "จัดพิมพ์เร็วขึ้น", "ประหยัดกระดาษ"], hintTitle: "สารบัญอัตโนมัติ", hintText: "เลขหน้าจะปรับตามตำแหน่งจริง" },
+        { type: "choice", q: "คำสั่ง Style (ลักษณะ) รวมอยู่ในแท็บเมนูใด?", target: "Home (หน้าแรก)", options: ["Home (หน้าแรก)", "Layout (เค้าโครง)", "Design (การออกแบบ)", "View"], hintTitle: "Styles", hintText: "กล่องสไตล์อยู่ในแท็บ Home" },
+        { type: "choice", q: "สไตล์ Normal ในกล่อง Styles ใช้สำหรับข้อความประเภทใด?", target: "เนื้อหารายงานทั่วไป", options: ["เนื้อหารายงานทั่วไป", "หัวข้อใหญ่", "ชื่อเรื่องหน้าปก", "เชิงอรรถ"], hintTitle: "Normal Style", hintText: "ใช้กับข้อความตัวอักษรเนื้อหาปกติ" },
+        { type: "choice", q: "หากต้องการปรับเปลี่ยนสีและฟอนต์ของสไตล์ Heading 1 ทุกจุดพร้อมกัน ต้องทำอย่างไร?", target: "คลิกขวาที่ตัวเลือก Heading 1 แล้วเลือก Modify (ปรับเปลี่ยน)", options: ["คลิกขวาที่ตัวเลือก Heading 1 แล้วเลือก Modify (ปรับเปลี่ยน)", "ลบแล้วพิมพ์ใหม่", "เปลี่ยนทีละบรรทัด", "กด Backspace"], hintTitle: "Modify Style", hintText: "คลิกขวาเลือก Modify ปรับเปลี่ยนทั้งเล่ม" },
+        { type: "choice", q: "การใส่ เลขหน้าเอกสาร (Page Number) ต้องไปที่แท็บเมนูใด?", target: "Insert (แทรก) > Page Number", options: ["Insert (แทรก) > Page Number", "Home > Numbering", "Layout > Margins", "View > Zoom"], hintTitle: "Page Number", hintText: "ไปที่ Insert > Page Number" }
+      ],
+      12: [
+        { type: "dragDrop", q: "[ข้อ 1/3 ลากวาง] ลากนามสกุลไฟล์ไปวางให้ตรงกับไฟล์ที่ล็อกฟอนต์และตำแหน่งไม่ให้เพี้ยน", imgSvg: `<div style="background:#fee2e2; border:2px solid #ef4444; padding:10px; border-radius:10px; font-weight:900; color:#991b1b; text-align:center;">เอกสารที่ล็อกโครงสร้างฟอนต์ตำแหน่งคงที่ (.PDF)</div>`, target: ".pdf", items: [".pdf", ".docx", ".txt"], hintTitle: ".pdf", hintText: ".pdf ล็อกตำแหน่งฟอนต์ไม่ให้เพี้ยน" },
+        { type: "dragDrop", q: "[ข้อ 2/3 ลากวาง] ลากนามสกุลไฟล์มาตรฐานของโปรแกรม Microsoft Word ไปวางในช่อง", imgSvg: `<div style="background:#e0f2fe; border:2px solid #1d4ed8; padding:10px; border-radius:10px; font-weight:900; color:#1e3a8a; text-align:center;">ไฟล์เอกสาร Microsoft Word (.DOCX)</div>`, target: ".docx", items: [".docx", ".pdf", ".xlsx"], hintTitle: ".docx", hintText: ".docx นามสกุลไฟล์ Word" },
+        { type: "dragDrop", q: "[ข้อ 3/3 ลากวาง] ลากคีย์ลัดไปวางให้ตรงกับคำสั่ง สั่งพิมพ์เอกสารออกทางเครื่องพิมพ์", imgSvg: `<div style="background:#e0f2fe; padding:10px; border-radius:10px; font-weight:800; text-align:center;">คำสั่ง: สั่งพิมพ์ออกทางเครื่องพิมพ์ (Print)</div>`, target: "Ctrl + P", items: ["Ctrl + P", "Ctrl + S", "Ctrl + E"], hintTitle: "Ctrl + P", hintText: "Ctrl + P = สั่งพิมพ์เอกสาร" },
+        
+        { type: "iconChoice", q: "สัญลักษณ์เครื่องมือในข้อใดใช้ส่งออกไฟล์ หรือ สั่งพิมพ์เอกสาร (Print)?", target: "Print Icon", options: [{ text: "Print Icon", svg: svgIconsDB.print }, { text: "Save Icon", svg: svgIconsDB.save }, { text: "Table Icon", svg: svgIconsDB.table }, { text: "Picture Icon", svg: svgIconsDB.picture }], hintTitle: "Print Icon", hintText: "ไอคอนเครื่องพิมพ์" },
+        { type: "imgChoice", q: "จากภาพ หากระบุช่อง Pages เป็น [ 1-5 ] ในหน้าต่างสั่งพิมพ์ หมายถึงสิ่งใด?", imgSvg: `<div class="question-img-banner"><div style="background:#f8fafc; border:2px solid #cbd5e1; padding:8px 16px; font-weight:900; color:#1d4ed8; font-size:1.2rem;">Pages: 1-5</div></div>`, target: "สั่งพิมพ์เฉพาะหน้า 1 ถึง หน้า 5", options: ["สั่งพิมพ์เฉพาะหน้า 1 ถึง หน้า 5", "พิมพ์เฉพาะหน้า 1 และหน้า 5 เท่านั้น", "พิมพ์ 5 ชุด", "พิมพ์หน้าละ 5 แผ่น"], hintTitle: "Pages Range", hintText: "พิมพ์เฉพาะช่วงหน้า 1 ถึงหน้า 5" },
+        { type: "choice", q: "มุมมอง ตัวอย่างก่อนพิมพ์ (Print Preview) มีประโยชน์อย่างไร?", target: "ตรวจสอบความถูกต้องของหน้ากระดาษก่อนสั่งพิมพ์จริงเพื่อประหยัดกระดาษ", options: ["ตรวจสอบความถูกต้องของหน้ากระดาษก่อนสั่งพิมพ์จริงเพื่อประหยัดกระดาษ", "แก้ไขคำผิดอัตโนมัติ", "ส่งอีเมล", "เปลี่ยนสไตล์ฟอนต์"], hintTitle: "Print Preview", hintText: "ตรวจสอบความเรียบร้อยก่อนพิมพ์จริง" },
+        { type: "choice", q: "ตัวเลือกการสั่งพิมพ์แบบ Print Current Page หมายถึงอะไร?", target: "สั่งพิมพ์เฉพาะหน้าปัจจุบันที่เคอร์เซอร์วางอยู่เพียงหน้าเดียว", options: ["สั่งพิมพ์เฉพาะหน้าปัจจุบันที่เคอร์เซอร์วางอยู่เพียงหน้าเดียว", "พิมพ์เอกสารทุกหน้า", "พิมพ์เฉพาะหน้าคู่", "พิมพ์เฉพาะหน้าแรก"], hintTitle: "Print Current Page", hintText: "พิมพ์เฉพาะแผ่นหน้าปัจจุบัน" },
+        { type: "choice", q: "หากต้องการส่งออกไฟล์เป็น PDF สามารถไปที่เมนูใดได้บ้าง?", target: "File > Export > Create PDF/XPS Document", options: ["File > Export > Create PDF/XPS Document", "Home > Save", "Insert > PDF", "View > PDF"], hintTitle: "Export PDF", hintText: "ไปที่ File > Export > Create PDF" },
+        { type: "choice", q: "การใส่รหัสผ่านล็อกเอกสารป้องกันคนเปิดอ่าน ตั้งค่าได้ที่เมนูใด?", target: "File > Info > Protect Document > Encrypt with Password", options: ["File > Info > Protect Document > Encrypt with Password", "Home > Font", "Layout > Lock", "Insert > Password"], hintTitle: "Protect Document", hintText: "ไปที่ File > Info > Protect Document" },
+        { type: "choice", q: "ตัวเลือก Copies ในหน้าต่าง Print หมายถึงสิ่งใด?", target: "จำนวนชุดสำเนาเอกสารที่ต้องการสั่งพิมพ์", options: ["จำนวนชุดสำเนาเอกสารที่ต้องการสั่งพิมพ์", "จำนวนหน้า", "ขนาดกระดาษ", "จำนวนคอลัมน์"], hintTitle: "Copies", hintText: "Copies = จำนวนชุดสำเนาที่สั่งพิมพ์" }
+      ]
+    };
+
+    /* AUDIO SYNTHESIZER */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'fanfare') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.type = 'triangle';
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.3);
+          o.start(audioCtx.currentTime + idx * 0.1);
+          o.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+        });
+      }
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    let activeQuizUnit = 1;
+    let quizStep = 0;
+    let activeQuestions = [];
+    let firstTryScore = 0;
+    let hasAttemptedCurrentQ = false;
+    let draggedItemValue = null;
+
+    function switchTab(tab) {
+      document.getElementById("login-form").style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById("register-form").style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById("tab-login-btn").classList.toggle("active", tab === 'login');
+      document.getElementById("tab-register-btn").classList.toggle("active", tab === 'register');
+    }
+
+    function getUsersDB() {
+      const db = localStorage.getItem("word_road_users_db");
+      return db ? JSON.parse(db) : {};
+    }
+
+    function saveUsersDB(db) {
+      localStorage.setItem("word_road_users_db", JSON.stringify(db));
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const fullname = document.getElementById("reg-fullname").value.trim();
+      const username = document.getElementById("reg-username").value.trim().toLowerCase();
+      const password = document.getElementById("reg-password").value.trim();
+
+      const db = getUsersDB();
+      if (db[username]) { alert("Username นี้มีผู้ใช้งานแล้วครับ"); return; }
+
+      db[username] = { fullname, password, unlockedUnit: 1, readUnits: [] };
+      saveUsersDB(db);
+
+      setCurrentSession({ username, fullname });
+      loadHubScreen();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById("login-username").value.trim().toLowerCase();
+      const password = document.getElementById("login-password").value.trim();
+
+      const db = getUsersDB();
+      const user = db[username];
+
+      if (user && user.password === password) {
+        setCurrentSession({ username, fullname: user.fullname });
+        loadHubScreen();
+      } else {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องครับ");
+      }
+    }
+
+    function setCurrentSession(userObj) {
+      localStorage.setItem("word_road_current_session", JSON.stringify(userObj));
+    }
+
+    function getCurrentSession() {
+      const session = localStorage.getItem("word_road_current_session");
+      return session ? JSON.parse(session) : null;
+    }
+
+    function logout() {
+      localStorage.removeItem("word_road_current_session");
+      document.getElementById("hub-screen").style.display = "none";
+      document.getElementById("auth-screen").style.display = "flex";
+    }
+
+    function getUserUnlockedUnit() {
+      const session = getCurrentSession();
+      if (!session) return 1;
+      const db = getUsersDB();
+      return (db[session.username] && db[session.username].unlockedUnit) ? db[session.username].unlockedUnit : 1;
+    }
+
+    function setUserUnlockedUnit(unitNum) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const db = getUsersDB();
+      if (db[session.username]) {
+        if (unitNum > (db[session.username].unlockedUnit || 1)) {
+          db[session.username].unlockedUnit = unitNum;
+          saveUsersDB(db);
+        }
+      }
+    }
+
+    function isUnitRead(unitId) {
+      const session = getCurrentSession();
+      if (!session) return false;
+      const db = getUsersDB();
+      const user = db[session.username];
+      return user && user.readUnits && user.readUnits.includes(unitId);
+    }
+
+    function markUnitAsRead(unitId) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const db = getUsersDB();
+      const user = db[session.username];
+      if (user) {
+        if (!user.readUnits) user.readUnits = [];
+        if (!user.readUnits.includes(unitId)) {
+          user.readUnits.push(unitId);
+          saveUsersDB(db);
+        }
+      }
+    }
+
+    function loadHubScreen() {
+      const session = getCurrentSession();
+      if (!session) return;
+
+      document.getElementById("display-fullname").innerText = session.fullname;
+      document.getElementById("display-username").innerText = `@${session.username}`;
+      document.getElementById("user-avatar-text").innerText = session.fullname.charAt(0).toUpperCase();
+
+      document.getElementById("auth-screen").style.display = "none";
+      document.getElementById("hub-screen").style.display = "flex";
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const quizUnit = urlParams.get('quizUnit');
+      
+      renderUnitsGrid();
+
+      if (quizUnit) {
+        const uId = parseInt(quizUnit);
+        markUnitAsRead(uId);
+        renderUnitsGrid();
+        startUnitQuiz(uId);
+      }
+    }
+
+    function renderUnitsGrid() {
+      const container = document.getElementById("units-grid");
+      container.innerHTML = "";
+      const userUnlocked = getUserUnlockedUnit();
+
+      document.getElementById("progress-text").innerText = `ความคืบหน้า: ${Math.min(userUnlocked, 12)} / 12 บท`;
+
+      unitsList.forEach(u => {
+        const isUnlocked = u.id <= userUnlocked;
+        const isCompleted = u.id < userUnlocked;
+        const isRead = isUnitRead(u.id);
+
+        let cardClass = "unit-card ";
+        let statusHtml = "";
+
+        if (isCompleted) {
+          cardClass += "completed";
+          statusHtml = `<span class="status-tag completed"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>ผ่านเกณฑ์แล้ว</span>`;
+        } else if (isUnlocked) {
+          cardClass += "unlocked";
+          statusHtml = `<span class="status-tag unlocked"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6-5c1.71 0 3.1 1.39 3.1 3.1v2H8.9V6c0-1.71 1.39-3.1 3.1-3.1z"/></svg>กำลังเรียน</span>`;
+        } else {
+          cardClass += "locked";
+          statusHtml = `<span class="status-tag locked"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>ล็อกอยู่</span>`;
+        }
+
+        const canStudy = isUnlocked;
+        const canTakeQuiz = isUnlocked && (isRead || isCompleted);
+
+        const card = document.createElement("div");
+        card.className = cardClass;
+        card.innerHTML = `
+          <div>
+            <div class="unit-card-top">
+              <span class="unit-badge">UNIT ${u.id.toString().padStart(2, '0')}</span>
+              ${statusHtml}
+            </div>
+            <div class="unit-title-text">${u.title}</div>
+          </div>
+
+          <div class="unit-actions-group">
+            <button class="btn-act ${canStudy ? 'btn-study' : 'btn-disabled'}" ${canStudy ? `onclick="goToStudy(${u.id})"` : 'disabled'}>
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+              <span>อ่านสรุป</span>
+            </button>
+            <button class="btn-act ${canTakeQuiz ? 'btn-quiz' : 'btn-disabled'}" ${canTakeQuiz ? `onclick="startUnitQuiz(${u.id})"` : 'disabled'}>
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>${!isRead && !isCompleted ? 'อ่านก่อน' : (isCompleted ? 'ทำซ้ำ' : 'ทำทดสอบ')}</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      const finalBtn = document.getElementById("btn-final-game");
+      const finalDesc = document.getElementById("final-lock-desc");
+      if (userUnlocked > 12) {
+        finalBtn.classList.remove("btn-disabled");
+        finalDesc.innerText = "✅ คุณผ่านเกณฑ์ปลดล็อกครบทุกบทเรียบร้อยแล้ว! พร้อมเข้าแข่งสนามใหญ่";
+        finalDesc.style.color = "#4ade80";
+      } else {
+        finalBtn.classList.add("btn-disabled");
+        finalDesc.innerText = "🔒 ต้องทำแบบทดสอบผ่านเกณฑ์ (7/10) ให้ครบทั้ง 12 บทก่อน จึงจะเปิดสนามแข่งหลักได้";
+        finalDesc.style.color = "#cbd5e1";
+      }
+    }
+
+    function goToStudy(unitId) {
+      if (unitId > getUserUnlockedUnit()) {
+        alert("บทนี้ยังถูกล็อกอยู่ครับ! ต้องทำแบบทดสอบผ่านเกณฑ์บทก่อนหน้าก่อนครับ");
+        return;
+      }
+      markUnitAsRead(unitId);
+      window.location.href = `study.html?unit=${unitId}`;
+    }
+
+    function openFinalGame() {
+      const userUnlocked = getUserUnlockedUnit();
+      if (userUnlocked > 12) {
+        window.location.href = `game.html`;
+      } else {
+        alert("ต้องทำแบบทดสอบผ่านเกณฑ์ให้ครบทั้ง 12 บทก่อนนะครับ!");
+      }
+    }
+
+    /* QUIZ SYSTEM & MULTI-TYPE RENDERER */
+    function startUnitQuiz(unitId) {
+      activeQuizUnit = unitId;
+      quizStep = 0;
+      firstTryScore = 0;
+      hasAttemptedCurrentQ = false;
+      
+      const rawQuestions = unitQuizzes[activeQuizUnit] || [];
+      // ข้อ 1-3 เป็นโหมดลากวางคงที่ ข้อ 4-10 สลับตัวเลือกคำถาม
+      const dragQuestions = rawQuestions.slice(0, 3);
+      const otherQuestions = shuffleArray(rawQuestions.slice(3));
+      activeQuestions = [...dragQuestions, ...otherQuestions];
+
+      document.getElementById("quiz-modal").style.display = "flex";
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      if (!activeQuestions || quizStep >= activeQuestions.length) {
+        showQuizResultModal();
+        return;
+      }
+
+      hasAttemptedCurrentQ = false;
+      const currentQ = activeQuestions[quizStep];
+      document.getElementById("quiz-badge").innerText = `ข้อที่ ${quizStep + 1} / 10`;
+      document.getElementById("quiz-unit-title").innerText = `บทที่ ${activeQuizUnit}`;
+      document.getElementById("quiz-q-text").innerText = currentQ.q;
+
+      const area = document.getElementById("quiz-interactive-area");
+      area.innerHTML = "";
+
+      // 1. DRAG & DROP MODE (ข้อ 1 - 3)
+      if (currentQ.type === "dragDrop") {
+        const container = document.createElement("div");
+        container.className = "drag-image-container";
+        container.innerHTML = currentQ.imgSvg;
+
+        const dropZone = document.createElement("div");
+        dropZone.className = "drag-drop-zone";
+        dropZone.innerHTML = `<span style="color:#0284c7; font-weight:800; font-size:0.85rem;">[ ลากกล่องคำตอบมาวางที่นี่ ]</span>`;
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add("hovered"); };
+        dropZone.ondragleave = () => dropZone.classList.remove("hovered");
+        dropZone.ondrop = (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("hovered");
+          if (draggedItemValue) {
+            handleChoiceAnswer(draggedItemValue, currentQ.target, currentQ);
+          }
+        };
+
+        container.appendChild(dropZone);
+
+        const pool = document.createElement("div");
+        pool.className = "drag-item-pool";
+        const shuffledItems = shuffleArray(currentQ.items);
+
+        shuffledItems.forEach(itemText => {
+          const chip = document.createElement("div");
+          chip.className = "draggable-chip";
+          chip.draggable = true;
+          chip.innerHTML = `<svg class="svg-icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 4c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg><span>${itemText}</span>`;
+
+          chip.ondragstart = () => { draggedItemValue = itemText; chip.classList.add("dragging"); };
+          chip.ondragend = () => { chip.classList.remove("dragging"); };
+
+          let clone = null;
+          chip.ontouchstart = (e) => {
+            draggedItemValue = itemText;
+            chip.classList.add("dragging");
+            const touch = e.touches[0];
+            
+            clone = chip.cloneNode(true);
+            clone.style.position = "fixed";
+            clone.style.zIndex = "1000";
+            clone.style.opacity = "0.9";
+            clone.style.pointerEvents = "none";
+            clone.style.left = `${touch.clientX - 40}px`;
+            clone.style.top = `${touch.clientY - 20}px`;
+            document.body.appendChild(clone);
+          };
+
+          chip.ontouchmove = (e) => {
+            if (!clone) return;
+            const touch = e.touches[0];
+            clone.style.left = `${touch.clientX - 40}px`;
+            clone.style.top = `${touch.clientY - 20}px`;
+
+            const rect = dropZone.getBoundingClientRect();
+            if (
+              touch.clientX >= rect.left &&
+              touch.clientX <= rect.right &&
+              touch.clientY >= rect.top &&
+              touch.clientY <= rect.bottom
+            ) {
+              dropZone.classList.add("hovered");
+            } else {
+              dropZone.classList.remove("hovered");
+            }
+          };
+
+          chip.ontouchend = (e) => {
+            chip.classList.remove("dragging");
+            dropZone.classList.remove("hovered");
+            if (clone) {
+              clone.remove();
+              clone = null;
+            }
+
+            const touch = e.changedTouches[0];
+            const rect = dropZone.getBoundingClientRect();
+
+            if (
+              touch.clientX >= rect.left &&
+              touch.clientX <= rect.right &&
+              touch.clientY >= rect.top &&
+              touch.clientY <= rect.bottom
+            ) {
+              dropZone.classList.add("filled");
+              dropZone.innerHTML = `<span style="color:#047857; font-weight:800;">${itemText}</span>`;
+              setTimeout(() => handleChoiceAnswer(itemText, currentQ.target, currentQ), 200);
+            }
+          };
+
+          pool.appendChild(chip);
+        });
+
+        area.appendChild(container);
+        area.appendChild(pool);
+      }
+      // 2. IMAGE QUESTION -> TEXT OPTIONS (คำถามภาพ ตอบข้อความ)
+      else if (currentQ.type === "imgChoice") {
+        const banner = document.createElement("div");
+        banner.innerHTML = currentQ.imgSvg;
+        area.appendChild(banner);
+
+        const choicesDiv = document.createElement("div");
+        choicesDiv.className = "choices-list-mini";
+        const shuffledOpts = shuffleArray(currentQ.options);
+        shuffledOpts.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "btn-choice-item";
+          btn.innerText = opt;
+          btn.onclick = () => handleChoiceAnswer(opt, currentQ.target, currentQ);
+          choicesDiv.appendChild(btn);
+        });
+        area.appendChild(choicesDiv);
+      }
+      // 3. TEXT QUESTION -> ICON OPTIONS (คำถามข้อความ ตอบไอคอน/ภาพ)
+      else if (currentQ.type === "iconChoice") {
+        const grid = document.createElement("div");
+        grid.className = "icon-options-grid";
+        const shuffledOpts = shuffleArray(currentQ.options);
+        
+        shuffledOpts.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "icon-option-card";
+          card.innerHTML = `${item.svg}<span>${item.text}</span>`;
+          card.onclick = () => handleChoiceAnswer(item.text, currentQ.target, currentQ);
+          grid.appendChild(card);
+        });
+        area.appendChild(grid);
+      }
+      // 4. STANDARD CHOICE MODE
+      else if (currentQ.type === "choice") {
+        const choicesDiv = document.createElement("div");
+        choicesDiv.className = "choices-list-mini";
+        const shuffledOpts = shuffleArray(currentQ.options);
+        shuffledOpts.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "btn-choice-item";
+          btn.innerText = opt;
+          btn.onclick = () => handleChoiceAnswer(opt, currentQ.target, currentQ);
+          choicesDiv.appendChild(btn);
+        });
+        area.appendChild(choicesDiv);
+      }
+    }
+
+    function handleChoiceAnswer(selectedOpt, targetOpt, currentQ) {
+      if (selectedOpt === targetOpt) {
+        playSound('correct');
+        if (!hasAttemptedCurrentQ) firstTryScore++;
+        nextQuizStep();
+      } else {
+        playSound('wrong');
+        hasAttemptedCurrentQ = true;
+        triggerHint(currentQ.hintTitle, currentQ.hintText);
+      }
+    }
+
+    function nextQuizStep() {
+      quizStep++;
+      renderQuizQuestion();
+    }
+
+    function triggerHint(title, desc) {
+      document.getElementById("hint-title").innerText = title || "เทคนิคสำคัญประจำข้อนี้";
+      document.getElementById("hint-desc").innerHTML = desc || "ทบทวนบทเรียนอีกครั้งเพื่อเลือกคำตอบที่ถูกต้องครับ!";
+      document.getElementById("hint-modal").style.display = "flex";
+    }
+
+    function closeHintModal() {
+      document.getElementById("hint-modal").style.display = "none";
+    }
+
+    /* RESULT MODAL WITH PASSING CRITERIA (>= 7/10) */
+    function showQuizResultModal() {
+      playSound('fanfare');
+      document.getElementById("quiz-modal").style.display = "none";
+
+      const isPassed = firstTryScore >= 7;
+
+      if (isPassed) {
+        setUserUnlockedUnit(activeQuizUnit + 1);
+      }
+
+      let praiseText = "";
+      let iconBadge = document.getElementById("result-icon-badge");
+
+      if (firstTryScore === 10) {
+        iconBadge.style.background = "linear-gradient(135deg, #facc15, #f59e0b)";
+        praiseText = "ผลการทดสอบยอดเยี่ยม ตอบถูกต้องครบถ้วนตั้งแต่ครั้งแรก";
+      } else if (firstTryScore >= 7) {
+        iconBadge.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        praiseText = "ยินดีด้วย! คุณผ่านเกณฑ์การทดสอบประจำบทเรียบร้อยแล้ว";
+      } else {
+        iconBadge.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
+        praiseText = "ยังไม่ผ่านเกณฑ์ (ต้องได้ 7 คะแนนขึ้นไป) กรุณาทบทวนและลองทำใหม่อีกครั้ง";
+      }
+
+      document.getElementById("result-title").innerText = isPassed ? `ผ่านการทดสอบบทที่ ${activeQuizUnit}` : `ยังไม่ผ่านเกณฑ์บทที่ ${activeQuizUnit}`;
+      document.getElementById("result-praise").innerHTML = `<span>${praiseText}</span>`;
+      document.getElementById("result-score-val").innerText = `${firstTryScore} / 10`;
+
+      const nextBtn = document.getElementById("btn-next-unit-study");
+      const retryBtn = document.getElementById("btn-retry-quiz");
+
+      if (isPassed && activeQuizUnit < 12) {
+        nextBtn.style.display = "flex";
+        nextBtn.querySelector("span").innerText = `ไปอ่านสรุปบทที่ ${activeQuizUnit + 1} เลย`;
+        retryBtn.style.display = "none";
+      } else if (!isPassed) {
+        nextBtn.style.display = "none";
+        retryBtn.style.display = "flex";
+      } else {
+        nextBtn.style.display = "none";
+        retryBtn.style.display = "none";
+      }
+
+      document.getElementById("result-modal").style.display = "flex";
+      renderUnitsGrid();
+    }
+
+    function retryCurrentQuiz() {
+      closeResultModal();
+      startUnitQuiz(activeQuizUnit);
+    }
+
+    function closeResultModal() {
+      document.getElementById("result-modal").style.display = "none";
+    }
+
+    function goToNextUnitFromModal() {
+      const nextUnit = activeQuizUnit + 1;
+      closeResultModal();
+      if (nextUnit <= 12) {
+        goToStudy(nextUnit);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const session = getCurrentSession();
+      if (session) {
+        loadHubScreen();
+      }
+    });
+  </script>
+</body>
+</html>
