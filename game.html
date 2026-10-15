@@ -223,6 +223,108 @@ const P = {
   baseMax: stageId === 1 ? 1.35 : (stageId <= 3 ? 1.75 : 2.25), accel: 0.045, friction: 0.015, turn: 0.046
 };
 
+/* ---------- WEB AUDIO SYSTEM (COUNTDOWN & NITRO SFX) ---------- */
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+// เสียงปิ๊บสั้นนับถอยหลัง 3, 2, 1
+function playBeepLow() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.18);
+  } catch(e) {}
+}
+
+// เสียงปล่อยตัว GO!
+function playBeepHigh() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch(e) {}
+}
+
+// เสียงไนโตร N2O บูสต์เร่งความเร็ว
+function playNitroSound() {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
+    // 1. เสียงกวาดความถี่พุ่งวูบแบบเจ็ทไซไฟ
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(750, now + 0.35);
+    osc.frequency.exponentialRampToValueAtTime(280, now + 1.2);
+
+    oscGain.gain.setValueAtTime(0.18, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(450, now);
+    filter.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
+
+    osc.connect(filter);
+    filter.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 1.2);
+
+    // 2. เสียงพ่นลมแรงดันสูง (White Noise Blast)
+    const bufferSize = ctx.sampleRate * 0.8;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    const whiteNoise = ctx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "highpass";
+    noiseFilter.frequency.setValueAtTime(1000, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.14, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+    whiteNoise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    whiteNoise.start(now);
+    whiteNoise.stop(now + 0.8);
+  } catch(e) {}
+}
+
 function init() {
   scene = new THREE.Scene();
   const skyC = TH.sky[1];
@@ -262,6 +364,9 @@ function init() {
   setupInputs();
   addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
   
+  // ปลดล็อกระบบเสียงเมื่อผู้ใช้แตะหน้าจอครั้งแรก
+  window.addEventListener("pointerdown", () => { getAudioContext(); }, { once: true });
+
   startCountdown();
   animate();
 }
@@ -275,15 +380,20 @@ function startCountdown() {
   $("lamp-2").className = "cd-lamp red";
   $("lamp-3").className = "cd-lamp red";
   $("cd-text").innerText = "3";
+  $("cd-text").style.color = "#facc15";
+
+  playBeepLow();
 
   const cdInterval = setInterval(() => {
     countdownTimer--;
     if (countdownTimer === 2) {
       $("cd-text").innerText = "2";
       $("lamp-3").className = "cd-lamp";
+      playBeepLow();
     } else if (countdownTimer === 1) {
       $("cd-text").innerText = "1";
       $("lamp-2").className = "cd-lamp";
+      playBeepLow();
     } else if (countdownTimer === 0) {
       $("cd-text").innerText = "GO! 🏁";
       $("cd-text").style.color = "#4ade80";
@@ -291,6 +401,7 @@ function startCountdown() {
       $("lamp-2").className = "cd-lamp green";
       $("lamp-3").className = "cd-lamp green";
       isCountingDown = false;
+      playBeepHigh();
       showToast("START RACE! 🏁", "#facc15");
     } else {
       clearInterval(cdInterval);
@@ -462,7 +573,12 @@ function buildItems() {
 
 function useN2O() {
   if (P.gauge < 50) { showToast("N2O ว่าง! ทำภารกิจผ่านด่านเพื่อรับ", "#f59e0b"); return; }
-  if (P.boost < 10) { P.gauge -= 50; P.boost = 80; showToast("N2O BOOST! ⚡", "#38bdf8"); }
+  if (P.boost < 10) { 
+    P.gauge -= 50; 
+    P.boost = 80; 
+    playNitroSound();
+    showToast("N2O BOOST! ⚡", "#38bdf8"); 
+  }
 }
 
 function setupInputs() {
@@ -497,7 +613,7 @@ function puff(x, z, col) {
 
 function update() {
   if (isCleared) return;
-  if (isCountingDown) return; // ล็อกรถระหว่างไฟนับถอยหลัง
+  if (isCountingDown) return;
   if (bonus) { tickBonus(); return; }
   
   frame++; raceF++;
@@ -514,7 +630,11 @@ function update() {
   if (!P.drift) {
     if (turnIn && P.speed > P.baseMax * .7) { if (++P.hold > 10) { P.drift = turnIn; P.charge = 0; showToast("DRIFT!", "#facc15"); } } else P.hold = 0;
   } else if (!turnIn || P.speed < P.baseMax * .5) {
-    if (P.charge > 35) { P.boost = Math.min(110, 40 + P.charge * .6); showToast("DRIFT BOOST! ⚡", "#38bdf8"); }
+    if (P.charge > 35) { 
+      P.boost = Math.min(110, 40 + P.charge * .6); 
+      playNitroSound();
+      showToast("DRIFT BOOST! ⚡", "#38bdf8"); 
+    }
     P.drift = 0; P.charge = 0; P.hold = 0;
   } else P.charge++;
 
@@ -526,7 +646,6 @@ function update() {
   let best = P.idx, bd = 1e9;
   for (let k = -14; k <= 14; k++) { const i = mod(P.idx + k), dx = P.x - pts[i].x, dz = P.z - pts[i].z, d = dx*dx + dz*dz; if (d < bd) { bd = d; best = i; } }
   
-  // เข้าเส้นชัยนับรอบ
   if (P.idx > N * .75 && best < N * .25) {
     P.lap++;
   } else if (P.idx < N * .25 && best > N * .75) {
@@ -549,7 +668,7 @@ function update() {
     }
   });
 
-  // ทำภารกิจทุกรอบที่ขับเข้าเส้นชัย (รอบที่ 1, 2, 3, 4)
+  // ทำภารกิจทุกรอบที่เข้าเส้นชัย (รอบที่ 1, 2, 3, 4)
   if (P.lap > lastBonusLap && P.lap < TOTAL_LAPS) {
     lastBonusLap = P.lap;
     startBonus();
@@ -672,8 +791,7 @@ const INTERACTIVE_MISSIONS = [
 ];
 
 function buildCurrentLapMission() {
-  const m = shuf(INTERACTIVE_MISSIONS)[0];
-  return m;
+  return shuf(INTERACTIVE_MISSIONS)[0];
 }
 
 function startBonus() {
@@ -778,7 +896,7 @@ function submitStandardAnswer(isOk) {
 function handleBonusSuccess() {
   bonus.ok = true;
   bonus.state = "done";
-  P.gauge = 100; // ได้ไนโตรเต็มหลอด
+  P.gauge = 100;
   renderBonusUI();
 }
 
