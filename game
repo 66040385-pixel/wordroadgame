@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Word Road 3D: Skill Mastery Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Chakra+Petch:wght@700;800&display=swap" rel="stylesheet">
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --primary: #00a2ff;
+      --yellow: #facc15;
+      --green: #00b06f;
+      --red: #ef4444;
+      --surface: #111827;
+      --border: rgba(255, 255, 255, 0.18);
+    }
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      user-select: none; -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    html, body {
+      width: 100vw; height: 100vh; overflow: hidden;
+      background: #7dd3fc; position: fixed; inset: 0;
+      font-family: 'Kanit', sans-serif;
+    }
+
+    #three-container {
+      position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1;
+    }
+    #three-container canvas {
+      width: 100% !important; height: 100% !important; display: block;
+    }
+
+    /* Top HUD */
+    #top-hud {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px);
+      border: 2px solid var(--border);
+      border-radius: 24px; padding: 8px 24px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; color: #fff; z-index: 45;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-width: 95vw;
+      white-space: nowrap;
+    }
+    .hud-chip { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      font-size: 0.92rem; 
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .hud-chip.player-chip {
+      max-width: 180px;
+      overflow: hidden;
+    }
+    #hud-name {
+      display: inline-block;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 900;
+      color: #38bdf8;
+      letter-spacing: 0.3px;
+    }
+    .hud-icon { width: 18px; height: 18px; fill: #38bdf8; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .hud-pill { 
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      padding: 4px 12px; border-radius: 999px; font-weight: 800; font-family: 'Chakra Petch', sans-serif;
+      font-size: 0.88rem;
+    }
+    .hud-progress-pill {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      padding: 4px 12px; border-radius: 999px; font-weight: 800; font-family: 'Chakra Petch', sans-serif;
+      font-size: 0.88rem; color: #fff;
+    }
+
+    #minimap-card {
+      position: fixed; top: 16px; right: 16px;
+      width: 165px; height: 165px;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+      border: 3px solid #facc15; border-radius: 18px;
+      overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 50;
+    }
+    #minimapCanvas { width: 100%; height: 100%; display: block; }
+    .map-tag {
+      position: absolute; bottom: 4px; left: 6px;
+      font-size: 0.65rem; font-weight: 800; color: #facc15; background: rgba(0,0,0,0.7);
+      padding: 2px 6px; border-radius: 4px; pointer-events: none;
+    }
+
+    #speedometer-box {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; z-index: 50;
+      pointer-events: none;
+    }
+    .star-badge {
+      background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; padding: 3px 12px; font-size: 0.8rem; font-weight: 800;
+      color: #facc15; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+    }
+    .speed-dial {
+      background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 18px;
+      padding: 6px 22px; display: flex; align-items: baseline; gap: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .speed-num {
+      font-size: 2.3rem; font-weight: 900; color: #ef4444; font-family: 'Chakra Petch', sans-serif;
+    }
+    .speed-unit { font-size: 0.9rem; font-weight: 800; color: #94a3b8; }
+    .gear-mode { font-size: 0.85rem; color: #38bdf8; font-weight: 800; margin-left: 6px; }
+
+    #mobile-controls {
+      position: fixed; bottom: 25px; left: 0; right: 0;
+      display: flex; justify-content: space-between; padding: 0 35px;
+      pointer-events: none; z-index: 60;
+    }
+    .pad-cluster { pointer-events: auto; display: flex; gap: 14px; align-items: center; }
+    .v-btn {
+      width: 74px; height: 74px; border-radius: 22px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5); cursor: pointer;
+      transition: transform 0.08s;
+    }
+    .v-btn:active { transform: scale(0.92); border-color: #facc15; background: rgba(250, 204, 21, 0.35); }
+    .v-btn svg { width: 34px; height: 34px; fill: #ffffff; }
+
+    #audio-toggle {
+      position: fixed; top: 16px; left: 16px;
+      width: 44px; height: 44px; border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; z-index: 50; color: #fff;
+    }
+    #audio-toggle svg { width: 22px; height: 22px; fill: #38bdf8; }
+
+    .overlay-screen {
+      position: fixed; inset: 0;
+      display: flex; justify-content: center; align-items: center; padding: 18px;
+      z-index: 100;
+    }
+    .modal-card {
+      background: var(--surface); border: 3px solid #00a2ff; border-radius: 28px;
+      padding: 32px 28px; max-width: 500px; width: 100%; text-align: center; color: #fff;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 35px rgba(0, 162, 255, 0.3);
+      animation: zoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes zoomIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .game-h1 {
+      font-size: 2.3rem; font-weight: 900;
+      background: linear-gradient(135deg, #facc15, #f59e0b);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px; letter-spacing: 1px;
+    }
+
+    .rbx-green-btn {
+      width: 100%; padding: 16px; border-radius: 16px; border: none;
+      background: linear-gradient(180deg, #00b06f 0%, #008755 100%);
+      color: #fff; font-size: 1.25rem; font-weight: 900; cursor: pointer;
+      box-shadow: 0 6px 0 #00603d; transition: 0.1s;
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+    }
+    .rbx-green-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #00603d; }
+
+    #start-screen {
+      background: radial-gradient(circle at 50% 40%, rgba(14, 165, 233, 0.45) 0%, rgba(15, 23, 42, 0.92) 80%);
+      backdrop-filter: blur(12px);
+      z-index: 200;
+    }
+
+    .start-modal {
+      background: rgba(255, 255, 255, 0.96);
+      border: 4px solid #38bdf8;
+      border-radius: 32px;
+      padding: 30px 24px;
+      max-width: 530px;
+      width: 92%;
+      text-align: center;
+      color: #0f172a;
+      box-shadow: 0 25px 60px rgba(2, 132, 199, 0.4), 0 0 0 8px rgba(255, 255, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+      animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      margin: -30px -24px 20px -24px;
+      padding: 24px 16px 18px;
+      border-bottom: 4px solid #facc15;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .game-logo-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 3px 3px 0px #0369a1, 0 0 18px rgba(250, 204, 21, 0.6);
+      line-height: 1.1;
+      font-family: 'Chakra Petch', 'Kanit', sans-serif;
+    }
+
+    .game-sub-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      background: #facc15;
+      color: #713f12;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 999px;
+      box-shadow: 0 3px 0 #ca8a04;
+    }
+    .game-sub-badge svg { width: 16px; height: 16px; fill: #713f12; }
+
+    .rule-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .rule-card {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .rule-card.points {
+      background: #fefce8;
+      border-color: #fde047;
+    }
+
+    .rule-header {
+      font-size: 0.9rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rule-card .rule-header { color: #0284c7; }
+    .rule-card .rule-header svg { width: 18px; height: 18px; fill: #0284c7; flex-shrink: 0; }
+
+    .rule-card.points .rule-header { color: #ca8a04; }
+    .rule-card.points .rule-header svg { width: 18px; height: 18px; fill: #ca8a04; flex-shrink: 0; }
+
+    .rule-card p {
+      font-size: 0.8rem;
+      color: #475569;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .rule-banner-single {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-size: 0.84rem;
+      color: #334155;
+      margin-bottom: 16px;
+      text-align: left;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+    .rule-banner-single svg { width: 19px; height: 19px; fill: #0284c7; flex-shrink: 0; margin-top: 2px; }
+
+    .start-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 15px;
+      border-radius: 18px;
+      border: none;
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-size: 1.25rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #047857, 0 10px 18px rgba(16, 185, 129, 0.35);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .start-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #047857;
+    }
+    .start-btn svg { width: 22px; height: 22px; fill: #ffffff; }
+
+    #checkpoint-modal {
+      position: fixed; inset: 0;
+      background: rgba(10, 12, 16, 0.88); backdrop-filter: blur(12px);
+      display: none; justify-content: center; align-items: center;
+      padding: 16px; z-index: 120;
+    }
+    .cp-box {
+      background: #ffffff; border: 4px solid #38bdf8;
+      border-radius: 26px; padding: 24px; max-width: 600px; width: 100%;
+      color: #1e293b; box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      max-height: 94vh; overflow-y: auto; text-align: left;
+    }
+    .cp-top {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+      border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px;
+    }
+    .badge-cp {
+      background: #fef08a; color: #854d0e; font-weight: 800; font-size: 0.85rem;
+      padding: 4px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;
+      border: 2px solid #facc15;
+    }
+    .badge-cp svg { width: 16px; height: 16px; fill: #854d0e; }
+    .q-statement {
+      font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; line-height: 1.5; color: #0f172a;
+    }
+
+    .minigame-stage {
+      background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 16px;
+      padding: 18px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 140px; gap: 12px; margin-bottom: 14px;
+    }
+
+    .match-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+    .match-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .match-card {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .match-card:hover { border-color: #38bdf8; background: #f0f9ff; }
+    .match-card.selected { border-color: #0284c7; background: #e0f2fe; color: #0284c7; font-weight: 800; }
+    .match-card.paired { border-color: #10b981; background: #ecfdf5; color: #059669; pointer-events: none; }
+
+    .ribbon-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .ribbon-btn {
+      padding: 10px 16px; border-radius: 10px; border: 2px solid #cbd5e1;
+      background: #ffffff; font-family: 'Kanit'; cursor: pointer; font-weight: 600;
+      font-size: 0.95rem; color: #1e293b; transition: 0.15s;
+    }
+    .ribbon-btn:hover { background: #e0f2fe; border-color: #38bdf8; }
+
+    .doc-preview-box {
+      width: 240px; height: 90px; background: #ffffff;
+      border: 2px solid #cbd5e1; border-radius: 8px; padding: 10px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .table-picker {
+      display: grid; grid-template-columns: repeat(4, 38px); grid-template-rows: repeat(3, 38px); gap: 6px;
+    }
+    .table-cell {
+      background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
+    }
+    .table-cell.selected { background: #38bdf8; border-color: #0284c7; }
+
+    .image-q-preview {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #ffffff; border: 2px solid #cbd5e1; border-radius: 14px;
+      padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      width: 100%; max-width: 420px;
+    }
+    .image-choices-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;
+    }
+    .img-choice-btn {
+      background: #ffffff; border: 2px solid #cbd5e1; border-radius: 14px;
+      padding: 14px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; cursor: pointer; transition: 0.15s ease;
+    }
+    .img-choice-btn:hover { border-color: #0284c7; background: #f0f9ff; transform: translateY(-2px); }
+    .img-choice-btn svg { width: 44px; height: 44px; }
+    .img-choice-btn span { font-size: 0.88rem; font-weight: 700; color: #334155; }
+
+    .word-sim-sheet {
+      width: 100%; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px;
+      padding: 16px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); position: relative;
+      text-align: center;
+    }
+    .wavy-underline-blue {
+      text-decoration: underline wavy #0284c7;
+      text-underline-offset: 7px;
+      text-decoration-thickness: 2.5px;
+      font-weight: 800;
+      font-size: 1.45rem;
+      color: #0f172a;
+      letter-spacing: 1px;
+    }
+    .wrap-behind-demo {
+      position: relative; width: 100%; height: 95px; display: flex;
+      align-items: center; justify-content: center; overflow: hidden;
+      background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 8px;
+    }
+    .wrap-behind-box {
+      position: absolute; width: 140px; height: 65px;
+      background: linear-gradient(135deg, #fde047, #f59e0b);
+      border: 2px solid #d97706; border-radius: 10px; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .wrap-behind-text {
+      position: relative; z-index: 2; font-size: 1.25rem; font-weight: 900;
+      color: #0f172a; text-shadow: 0 0 4px #ffffff, 0 0 8px #ffffff;
+    }
+
+    #knowledge-modal {
+      position: fixed; inset: 0;
+      background: rgba(10, 12, 16, 0.92); backdrop-filter: blur(14px);
+      display: none; justify-content: center; align-items: center;
+      padding: 18px; z-index: 130;
+    }
+    .knowledge-card {
+      background: #0f172a; border: 3px solid #ef4444; border-radius: 28px;
+      padding: 26px; max-width: 540px; width: 100%; color: #fff;
+      box-shadow: 0 20px 60px rgba(239, 68, 68, 0.3); text-align: left;
+      animation: zoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .kn-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+      color: #ef4444; font-size: 1.3rem; font-weight: 800;
+    }
+    .kn-header svg { width: 28px; height: 28px; fill: #ef4444; }
+    .kn-subtitle { font-size: 0.92rem; color: #cbd5e1; margin-bottom: 16px; line-height: 1.5; }
+    .kn-box {
+      background: #1e293b; border-left: 4px solid #facc15;
+      padding: 14px 16px; border-radius: 10px; margin-bottom: 18px;
+    }
+    .kn-title { font-size: 1.05rem; font-weight: 800; color: #facc15; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .kn-title svg { width: 20px; height: 20px; fill: #facc15; }
+    .kn-desc { font-size: 0.95rem; color: #e2e8f0; line-height: 1.6; }
+    .kn-notice {
+      font-size: 0.85rem; color: #f87171; background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;
+      padding: 8px 12px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .kn-notice svg { width: 18px; height: 18px; fill: #f87171; flex-shrink: 0; }
+
+    .hl-yellow { background: #fde047; color: #0f172a; padding: 1px 6px; border-radius: 4px; font-weight: 800; }
+    .hl-blue { background: #38bdf8; color: #0f172a; padding: 1px 6px; border-radius: 4px; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div id="three-container"></div>
+
+  <div id="audio-toggle" onclick="toggleAudio()" title="เปิด/ปิดเสียง">
+    <svg id="audio-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+  </div>
+
+  <div id="top-hud">
+    <div class="hud-chip player-chip">
+      <svg class="hud-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span id="hud-name">-</span>
+    </div>
+    <div class="hud-chip">
+      <svg class="hud-icon" viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+      <span class="hud-pill" id="hud-stage">ด่าน 1 / 12</span>
+    </div>
+    <div class="hud-chip">
+      <svg class="hud-icon" style="fill:#818cf8;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-6h2v6zm0-8h-2V7h2v1z"/></svg>
+      <span class="hud-progress-pill" id="hud-progress">0% (ข้อ 0/20)</span>
+    </div>
+    <div class="hud-chip">
+      <svg class="hud-icon" style="fill:#10b981;" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+      <span class="hud-pill" style="background: linear-gradient(135deg, #10b981, #059669);" id="hud-score">0 / 20</span>
+    </div>
+  </div>
+
+  <div id="minimap-card">
+    <canvas id="minimapCanvas" width="165" height="165"></canvas>
+    <div class="map-tag">GPS MAP (1-12)</div>
+  </div>
+
+  <div id="speedometer-box">
+    <div class="star-badge">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="#facc15"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+      <span>TAXI PRO</span>
+    </div>
+    <div class="speed-dial">
+      <span class="speed-num" id="speed-val">0</span>
+      <span class="speed-unit">mph</span>
+      <span class="gear-mode" id="gear-val">N</span>
+    </div>
+  </div>
+
+  <div id="mobile-controls">
+    <div class="pad-cluster">
+      <div class="v-btn" id="btn-left">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      </div>
+      <div class="v-btn" id="btn-right">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </div>
+    </div>
+    <div class="pad-cluster">
+      <div class="v-btn" id="btn-down" style="border-color:#ef4444; background: rgba(239, 68, 68, 0.25);">
+        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+      </div>
+      <div class="v-btn" id="btn-up" style="border-color:#10b981; background: rgba(16, 185, 129, 0.35); width: 80px; height: 80px;">
+        <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- START SCREEN (ถอดช่องกรอกชื่อออก และดึงข้อมูลผู้ใช้งานจาก Session อัตโนมัติ) -->
+  <div id="start-screen" class="overlay-screen">
+    <div class="start-modal">
+      <div class="hero-banner">
+        <div class="game-logo-title">WORD ROAD 3D</div>
+        <div class="game-sub-badge">
+          <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+          <span>ภารกิจซิ่งพิชิต Microsoft Word ม.1 (20 ข้อ 12 ด่าน)</span>
+        </div>
+      </div>
+
+      <div class="rule-grid">
+        <div class="rule-card">
+          <div class="rule-header">
+            <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            <span>วิธีการขับรถ</span>
+          </div>
+          <p>• ใช้ปุ่มลูกศร / W-A-S-D บังคับรถ<br>• หลบกรวยยางและหิน เพื่อรักษาความเร็ว</p>
+        </div>
+        
+        <div class="rule-card points">
+          <div class="rule-header">
+            <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span>ระบบคิดคะแนน (20 ข้อ)</span>
+          </div>
+          <p>• ข้อละ 1 คะแนนเต็ม 20 คะแนน<br>• หากตอบผิด ข้อนั้นจะวนกลับมาถามซ้ำจนกว่าจะทำได้ถูกต้อง!</p>
+        </div>
+      </div>
+
+      <div class="rule-banner-single">
+        <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+        <div><b>ผู้เล่นปัจจุบัน:</b> <span id="start-player-display" style="color:#0284c7; font-weight:800;">กำลังโหลด...</span></div>
+      </div>
+
+      <button class="start-btn" onclick="startGame()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        เข้าสู่สนามแข่ง (START MISSION)
+      </button>
+    </div>
+  </div>
+
+  <div id="checkpoint-modal">
+    <div class="cp-box">
+      <div class="cp-top">
+        <span class="badge-cp" id="cp-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          CHECKPOINT 1
+        </span>
+        <span style="font-weight:900; color:#0284c7;" id="cp-pts">+1 คะแนน</span>
+      </div>
+      <div class="q-statement" id="cp-q">ภารกิจปฏิบัติการ...</div>
+      <div class="minigame-stage" id="cp-minigame-area"></div>
+      <div style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 12px; font-size: 0.88rem; color: #475569; display: flex; gap: 8px; align-items: center;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="#64748b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <span id="cp-footer-tip">แตะเลือกคำตอบหรือจับคู่ให้ถูกต้องเพื่อปลดล็อกม่านเลเซอร์</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="knowledge-modal">
+    <div class="knowledge-card">
+      <div class="kn-header">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span>ยังไม่ถูกต้อง! ใบความรู้สรุปแนวคิด</span>
+      </div>
+      <div class="kn-subtitle">ศึกษาจุดสังเกตด้านล่างนี้เพื่อทำภารกิจแก้ตัว (คำถามนี้จะถูกสุ่มกลับมาถามซ้ำอีกครั้งในด่านถัดไป)</div>
+
+      <div class="kn-box">
+        <div class="kn-title" id="kn-title">
+          <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+          <span id="kn-subject">หัวข้อความรู้</span>
+        </div>
+        <div class="kn-desc" id="kn-text">เนื้อหาความรู้สรุป...</div>
+      </div>
+
+      <div class="kn-notice">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        <span>รอบแก้ตัวนี้ช่วยให้ผ่านม่านเลเซอร์ได้ แต่คำถามจะวนกลับมาถามใหม่เพื่อทดสอบความชำนาญอีกครั้ง</span>
+      </div>
+
+      <button class="rbx-green-btn" onclick="retryMission()">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        เข้าใจแล้ว ไปผ่านม่านพลังงาน
+      </button>
+    </div>
+  </div>
+
+  <div id="finish-screen" class="overlay-screen" style="display:none;">
+    <div class="modal-card">
+      <div class="game-h1" style="-webkit-text-fill-color: #4ade80;">VICTORY LAP!</div>
+      <p style="color: #cbd5e1; font-size: 0.95rem;">คุณพิชิตเส้นทาง Word Road ครบถ้วนและผ่านการทดสอบทุกข้อ</p>
+
+      <div style="background: #030712; border: 2px dashed #facc15; border-radius: 18px; padding: 20px; margin: 18px 0;">
+        <div style="font-size: 0.85rem; color: #94a3b8;">คะแนนรวมทั้งสิ้น (คิดจากการตอบถูกรอบแรก)</div>
+        <div id="final-score" style="font-size: 2.8rem; font-weight: 900; color: #facc15; font-family:'Chakra Petch';">0 / 20</div>
+        <div id="final-rank" style="font-size: 1.05rem; font-weight: 800; color: #38bdf8;">ระดับ: ยอดนักขับระดับ Master</div>
+      </div>
+
+      <div id="cert-code" style="background: rgba(31, 41, 55, 0.8); padding: 12px; border-radius: 12px; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 16px;">
+        รหัสยืนยันผล: WR-CODE-READY
+      </div>
+
+      <p style="font-size:0.85rem; color:#38bdf8; margin-bottom:15px;">บันทึกภาพหน้าจอนี้เพื่อส่งหลักฐานการเรียนรู้</p>
+      <button class="rbx-green-btn" onclick="window.location.href='index.html'">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        กลับไปยังหน้าหลัก Hub
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ดึงชื่อผู้ใช้จาก Session หลักที่ Login ไว้ในหน้าแรก (index.html) อัตโนมัติ
+    let playerName = "ผู้เล่นทั่วไป";
+    
+    function loadUserSession() {
+      const sessionStr = localStorage.getItem("word_road_current_session");
+      if (sessionStr) {
+        try {
+          const session = JSON.parse(sessionStr);
+          if (session && session.fullname) {
+            playerName = session.fullname;
+          } else if (session && session.username) {
+            playerName = session.username;
+          }
+        } catch (e) {
+          console.error("Parse session error:", e);
+        }
+      }
+      
+      const displayEl = document.getElementById("start-player-display");
+      if (displayEl) displayEl.innerText = playerName;
+      const hudEl = document.getElementById("hud-name");
+      if (hudEl) {
+        hudEl.innerText = playerName;
+        hudEl.title = playerName;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadUserSession();
+    });
+
+    // 20 ข้อคำถามมาตรฐาน Microsoft Word ม.1
+    const questionsPool = [
+      {
+        qId: 1, stage: 1, pts: 1.0, mode: "ribbon",
+        q: "ข้อที่ 1/20: เลือกแท็บเมนู Ribbon ที่ใช้เปลี่ยนแบบฟอนต์และขนาดตัวอักษร:",
+        target: "Home",
+        knTitle: "แถบเมนู Ribbon ใน Microsoft Word",
+        knText: "แถบ <span class='hl-yellow'>หน้าแรก (Home)</span> เป็นศูนย์รวมคำสั่งพื้นฐาน เช่น <b>เปลี่ยนฟอนต์, ปรับขนาดอักษร, ตัวหนา/เอียง/ขีดเส้นใต้</b> และการจัดตำแหน่งย่อหน้า"
+      },
+      {
+        qId: 2, stage: 1, pts: 1.0, mode: "image_choice",
+        q: "ข้อที่ 2/20: ภาพไอคอนใดคือคำสั่ง 'ตัวคัดวางรูปแบบ (Format Painter)' ใช้คัดลอกสไตล์ข้อความ?",
+        target: "brush",
+        options: [
+          { id: "brush", label: "แปรงทาสี", svg: `<svg viewBox="0 0 24 24" fill="#0284c7"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.71l-1.42-1.42a1 1 0 0 0-1.41 0L10.5 10.25 13.75 13.5l7.38-7.38a1 1 0 0 0-.42-1.83z"/></svg>` },
+          { id: "cut", label: "กรรไกร", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16-16h-3l-5 5 2 2 6-6V4z"/></svg>` },
+          { id: "copy", label: "กระดาษซ้อน", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>` },
+          { id: "save", label: "แผ่นดิสก์", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>` }
+        ],
+        knTitle: "จุดสังเกต: Format Painter (ตัวคัดวางรูปแบบ)",
+        knText: "สังเกตรูป <span class='hl-yellow'>แปรงทาสี</span> ใช้ในการ <span class='hl-blue'>คัดลอกสไตล์ข้อความ</span> (ฟอนต์, สี, ขนาด) ไม่ใช่กรรไกร (ตัด) หรือกระดาษซ้อน (คัดลอกเนื้อหา)"
+      },
+      {
+        qId: 3, stage: 2, pts: 1.0, mode: "matching",
+        q: "ข้อที่ 3/20: แตะจับคู่ 'คำสั่งจัดการเอกสาร' กับ 'คีย์ลัด' ให้ถูกต้องทั้ง 2 คู่:",
+        pairs: [
+          { action: "บันทึกเอกสาร", key: "Ctrl + S" },
+          { action: "สร้างเอกสารใหม่", key: "Ctrl + N" }
+        ],
+        knTitle: "จุดสังเกต: คีย์ลัดจัดการไฟล์",
+        knText: "<span class='hl-yellow'>Ctrl + S</span> ย่อมาจาก <b>Save (บันทึก)</b> ส่วน <span class='hl-blue'>Ctrl + N</span> ย่อมาจาก <b>New (สร้างใหม่)</b>"
+      },
+      {
+        qId: 4, stage: 2, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 4/20: หากต้องการเปิดเอกสารเก่าที่เคยบันทึกไว้ขึ้นมาใช้งาน ต้องกดคีย์ลัดใด:",
+        target: "Ctrl + O",
+        opts: ["Ctrl + P", "Ctrl + O", "Ctrl + W", "Ctrl + F"],
+        knTitle: "จุดสังเกต: คีย์ลัดเปิดไฟล์ (Open)",
+        knText: "<span class='hl-yellow'>Ctrl + O</span> ย่อมาจาก <b>Open</b> ใช้เปิดไฟล์เก่า (จำสับสน: Ctrl + P คือ Print / Ctrl + F คือ Find)"
+      },
+      {
+        qId: 5, stage: 3, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 5/20: พิมพ์ข้อความผิดแล้วเผลอลบหายไป จะกดคีย์ลัดใดเพื่อกู้คืนข้อความกลับมาทันที (Undo):",
+        target: "Ctrl + Z",
+        opts: ["Ctrl + X", "Ctrl + Z", "Ctrl + Y", "Ctrl + C"],
+        knTitle: "จุดสังเกต: ยกเลิกคำสั่งล่าสุด (Undo)",
+        knText: "<span class='hl-yellow'>Ctrl + Z</span> คือ <b>Undo (ยกเลิกการกระทำล่าสุด/ย้อนกลับ)</b> เป็นคีย์ลัดกู้คืนข้อความสำคัญ"
+      },
+      {
+        qId: 6, stage: 3, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 6/20: หากต้องการ 'ทำซ้ำคำสั่งล่าสุด' (Redo) ที่เพิ่งยกเลิกไป ต้องกดปุ่มใด:",
+        target: "Ctrl + Y",
+        opts: ["Ctrl + R", "Ctrl + Y", "Ctrl + U", "Ctrl + V"],
+        knTitle: "จุดสังเกตความแตกต่าง: Undo vs Redo",
+        knText: "<b>Ctrl + Z</b> = ย้อนกลับ (Undo) <br><span class='hl-yellow'>Ctrl + Y</span> = <span class='hl-blue'>ทำซ้ำคำสั่งล่าสุด (Redo)</span>"
+      },
+      {
+        qId: 7, stage: 4, pts: 1.0, mode: "matching",
+        q: "ข้อที่ 7/20: แตะจับคู่ 'สไตล์ฟอนต์' กับ 'คีย์ลัดคำสั่ง' ให้ถูกต้องครบทั้ง 2 คู่:",
+        pairs: [
+          { action: "ตัวหนา", key: "Ctrl + B" },
+          { action: "ตัวเอียง", key: "Ctrl + I" }
+        ],
+        knTitle: "จุดสังเกต: คีย์ลัดรูปแบบข้อความ",
+        knText: "<span class='hl-yellow'>Ctrl + B</span> = <b>Bold (ตัวหนา)</b><br><span class='hl-blue'>Ctrl + I</span> = <b>Italic (ตัวเอียง)</b>"
+      },
+      {
+        qId: 8, stage: 4, pts: 1.0, mode: "image_query",
+        q: "ข้อที่ 8/20: จากรูปภาพไอคอนด้านล่างนี้ มีหน้าที่สั่งการทำงานใดใน Word?",
+        customHtml: `<div style="padding:10px;"><svg viewBox="0 0 24 24" width="70" height="70" fill="#0284c7"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg></div>`,
+        target: "ขีดเส้นใต้ข้อความ (Underline)",
+        opts: ["ขีดเส้นใต้ข้อความ (Underline)", "ตัวเอียง (Italic)", "ตัวยก (Superscript)", "เน้นสีข้อความ (Highlight)"],
+        knTitle: "จุดสังเกต: ไอคอนตัว U ขีดเส้นใต้",
+        knText: "ตัวไอคอนมีรูปตัว <b>U ที่มีขีดด้านล่าง</b> ย่อมาจาก <span class='hl-yellow'>Underline (Ctrl + U)</span> ใช้สำหรับขีดเส้นใต้"
+      },
+      {
+        qId: 9, stage: 5, pts: 1.0, mode: "align",
+        q: "ข้อที่ 9/20: กดปุ่มจัดตำแหน่งเอกสาร เพื่อวางข้อความให้อยู่ 'กึ่งกลางหน้ากระดาษ':",
+        target: "center",
+        knTitle: "จุดสังเกต: การจัดแนวย่อหน้า (Alignment)",
+        knText: "การวางข้อความตรงกลางหน้ากระดาษ ให้เลือก <span class='hl-yellow'>กึ่งกลาง (Center)</span> หรือใช้คีย์ลัด <span class='hl-blue'>Ctrl + E</span>"
+      },
+      {
+        qId: 10, stage: 6, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 10/20: เครื่องมือใดใช้สร้างรายการที่มีลำดับ 1, 2, 3 ตามลำดับก่อนหลัง:",
+        target: "Numbering",
+        opts: ["Bullets", "Numbering", "Multilevel List"],
+        knTitle: "จุดสังเกต: Bullets vs Numbering",
+        knText: "เน้นย้ำ: หากรายการมีลำดับขั้นตอนชัดเจน 1, 2, 3 ให้ใช้ <span class='hl-yellow'>Numbering</span> หากไม่มีลำดับให้ใช้ Bullets"
+      },
+      {
+        qId: 11, stage: 6, pts: 1.0, mode: "image_choice",
+        q: "ข้อที่ 11/20: สัญลักษณ์ภาพใดคือ 'สัญลักษณ์แสดงหัวข้อย่อย (Bullets)' ที่ใช้ทำรายการแบบไม่มีลำดับเลข?",
+        target: "bullets",
+        options: [
+          { id: "bullets", label: "จุด Bullet", svg: `<svg viewBox="0 0 24 24" fill="#0284c7"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></svg>` },
+          { id: "num", label: "เลข 1 2 3", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></svg>` },
+          { id: "align_just", label: "กระจายข้อความ", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h18v2H3v-2zm0 4h18v2H3v-2z"/></svg>` },
+          { id: "sort", label: "เรียง A-Z", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>` }
+        ],
+        knTitle: "จุดสังเกต: สัญลักษณ์ Bullets",
+        knText: "ไอคอน <span class='hl-yellow'>จุด Bullets</span> เป็นจุดทรงกลมนำหน้า เหมาะสำหรับหัวข้อย่อยที่ไม่ต้องระบุลำดับก่อนหลัง"
+      },
+      {
+        qId: 12, stage: 7, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 12/20: คำสั่ง Wrap Text รูปแบบใดทำให้ข้อความไหลล้อมรอบกรอบรูปภาพเป็นสี่เหลี่ยมพอดี:",
+        target: "Square",
+        opts: ["In Line with Text", "Square", "Behind Text"],
+        knTitle: "จุดสังเกต: รูปแบบ Wrap Text",
+        knText: "<span class='hl-yellow'>Square</span> = ข้อความล้อมรอบเป็น <span class='hl-blue'>สี่เหลี่ยม</span> พอดี<br>Behind Text = รูปภาพอยู่หลังข้อความ"
+      },
+      {
+        qId: 13, stage: 7, pts: 1.0, mode: "image_query",
+        q: "ข้อที่ 13/20: ภาพจำลองเอกสารด้านล่าง (รูปภาพอยู่ด้านหลัง ตัวหนังสือพิมพ์ลอยทับด้านบน) ตรงกับคำสั่ง Wrap Text ชนิดใด?",
+        customHtml: `<div class="word-sim-sheet"><div style="font-size:0.75rem; color:#94a3b8; margin-bottom:8px; font-weight:800;">จำลองหน้ากระดาษ Word</div><div class="wrap-behind-demo"><div class="wrap-behind-box"><svg viewBox="0 0 24 24" width="28" height="28" fill="#713f12" opacity="0.4"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div><div class="wrap-behind-text">ข้อความลอยทับรูปภาพ</div></div></div>`,
+        target: "Behind Text (อยู่ข้างหลังข้อความ)",
+        opts: ["In Front of Text (ข้างหน้าข้อความ)", "Behind Text (อยู่ข้างหลังข้อความ)", "Top and Bottom (บนและล่าง)", "Through (ทะลุผ่าน)"],
+        knTitle: "จุดสังเกต: Behind Text",
+        knText: "การส่งรูปภาพลงไปเป็นฉากหลังแล้วให้ข้อความลอยทับด้านบน เรียกว่า <span class='hl-yellow'>Behind Text (อยู่ข้างหลังข้อความ)</span>"
+      },
+      {
+        qId: 14, stage: 8, pts: 1.0, mode: "table_grid",
+        q: "ข้อที่ 14/20: กำหนดขนาดสร้างตารางข้อมูลจำนวน '3 คอลัมน์ x 2 แถว' ให้ถูกต้อง:",
+        targetCols: 3, targetRows: 2,
+        knTitle: "จุดสังเกต: แถวและคอลัมน์ตาราง",
+        knText: "<span class='hl-yellow'>คอลัมน์ = แนวตั้ง (3)</span> และ <span class='hl-blue'>แถว = แนวนอน (2)</span> ดังนั้นจึงนับเป็นตารางขนาด 3 x 2"
+      },
+      {
+        qId: 15, stage: 9, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 15/20: พิมพ์ตารางกว้าง ต้องตั้งค่าหน้ากระดาษแบบใดในเมนู Orientation:",
+        target: "Landscape (แนวนอน)",
+        opts: ["Portrait (แนวตั้ง)", "Landscape (แนวนอน)", "Columns (คอลัมน์)"],
+        knTitle: "จุดสังเกต: Portrait vs Landscape",
+        knText: "Portrait = แนวตั้ง (ปกติ)<br><span class='hl-yellow'>Landscape = แนวนอน</span> (เหมาะสำหรับตารางกว้างหรือแผนภูมิ)"
+      },
+      {
+        qId: 16, stage: 9, pts: 1.0, mode: "image_choice",
+        q: "ข้อที่ 16/20: ไอคอนใดคือคำสั่ง 'ระยะขอบกระดาษ (Margins)' ในแท็บ Layout?",
+        target: "margin",
+        options: [
+          { id: "margin", label: "ขอบกระดาษ", svg: `<svg viewBox="0 0 24 24" fill="#0284c7"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v10H7z"/></svg>` },
+          { id: "size", label: "ขนาดกระดาษ", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>` },
+          { id: "cols", label: "แบ่งคอลัมน์", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M10 18h5V5h-5v13zm-6 0h5V5H4v13zm12 0h5V5h-5v13z"/></svg>` },
+          { id: "break", label: "ตัวแบ่งหน้า", svg: `<svg viewBox="0 0 24 24" fill="#64748b"><path d="M18.6 6.62c-1.44 0-2.8.56-3.77 1.53L12 10.98l-2.83-2.83c-.97-.97-2.33-1.53-3.77-1.53-2.93 0-5.4 2.47-5.4 5.4 0 2.93 2.47 5.4 5.4 5.4 1.44 0 2.8-.56 3.77-1.53L12 13.02l2.83 2.83c.97.97 2.33 1.53 3.77 1.53 2.93 0 5.4-2.47 5.4-5.4 0-2.93-2.47-5.36-5.4-5.36z"/></svg>` }
+        ],
+        knTitle: "จุดสังเกต: ไอคอน Margins",
+        knText: "ไอคอน <span class='hl-yellow'>Margins (ระยะขอบกระดาษ)</span> สังเกตเส้นขอบสี่เหลี่ยมซ้อนชั้นที่แสดงพื้นที่ระยะเว้นว่างรอบกระดาษ"
+      },
+      {
+        qId: 17, stage: 10, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 17/20: ในโปรแกรม Word การตรวจพบคำที่สะกดผิดจะแจ้งเตือนด้วยสัญลักษณ์ใดใต้คำ:",
+        target: "เส้นใต้หยักสีแดง",
+        opts: ["เส้นใต้ขีดทึบสีดำ", "เส้นใต้หยักสีแดง", "เส้นใต้เส้นคู่สีเขียว"],
+        knTitle: "จุดสังเกต: เส้นใต้เตือนข้อผิดพลาด",
+        knText: "<span class='hl-yellow'>เส้นใต้หยักสีแดง</span> = <span class='hl-blue'>สะกดคำผิด</span><br>เส้นใต้หยักสีฟ้า = ไวยากรณ์/เว้นวรรคผิด"
+      },
+      {
+        qId: 18, stage: 10, pts: 1.0, mode: "image_query",
+        q: "ข้อที่ 18/20: เส้นหยักสีฟ้าใต้ข้อความดังภาพ บ่งบอกถึงข้อผิดพลาดประเภทใด?",
+        customHtml: `<div class="word-sim-sheet"><div style="font-size:0.75rem; color:#94a3b8; margin-bottom:10px; font-weight:800;">จำลองการพิมพ์ใน Microsoft Word</div><div style="padding:14px 6px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;"><span class="wavy-underline-blue">สวัสดี&nbsp;&nbsp;&nbsp;&nbsp;ครับผม</span></div><div style="font-size:0.8rem; color:#64748b; margin-top:8px;">(สังเกต: มีเส้นหยักสีฟ้าปรากฏใต้ข้อความ)</div></div>`,
+        target: "ไวยากรณ์หรือการเคาะเว้นวรรคผิดพลาด",
+        opts: ["สะกดคำผิด", "ไวยากรณ์หรือการเคาะเว้นวรรคผิดพลาด", "ไม่ได้บันทึกไฟล์", "ฟอนต์ไม่รองรับภาษาไทย"],
+        knTitle: "จุดสังเกตจำง่าย: สีแดง vs สีฟ้า",
+        knText: "สีแดง = สะกดผิด<br><span class='hl-yellow'>สีฟ้า</span> = <span class='hl-blue'>ไวยากรณ์หรือเคาะเว้นวรรคซ้ำซ้อนผิดพลาด</span>"
+      },
+      {
+        qId: 19, stage: 11, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 19/20: การเตรียมหัวข้อเพื่อสร้างสารบัญอัตโนมัติ (Table of Contents) ต้องกำหนดสไตล์ใดให้กับหัวข้อหลัก:",
+        target: "Heading 1 (หัวเรื่อง 1)",
+        opts: ["Title (ชื่อเรื่อง)", "Heading 1 (หัวเรื่อง 1)", "Normal (ปกติ)"],
+        knTitle: "จุดสังเกต: สารบัญอัตโนมัติ",
+        knText: "การดึงสารบัญอัตโนมัติ Word จะดึงจากข้อความที่ตั้งสไตล์เป็น <span class='hl-yellow'>Heading 1 (หัวเรื่อง 1)</span> หรือ Heading 2"
+      },
+      {
+        qId: 20, stage: 12, pts: 1.0, mode: "choice",
+        q: "ข้อที่ 20/20: ส่งออกไฟล์ชนิดใดที่ล็อกการจัดหน้ากระดาษและฟอนต์ได้แน่นอนที่สุดเมื่อนำไปพิมพ์งาน:",
+        target: ".pdf",
+        opts: [".docx", ".txt", ".pdf"],
+        knTitle: "จุดสังเกต: สกุลไฟล์ .PDF",
+        knText: "ไฟล์นามสกุล <span class='hl-yellow'>.pdf</span> ใช้สำหรับล็อกการจัดหน้าและฟอนต์ให้คงที่ไม่เคลื่อนเมื่อเปิดบนเครื่องอื่น"
+      }
+    ];
+
+    let audioCtx = null;
+    let isMuted = false;
+    let engineOsc = null;
+    let engineSubOsc = null;
+    let engineFilter = null;
+    let engineGain = null;
+    let bgmInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        engineFilter = audioCtx.createBiquadFilter();
+        engineFilter.type = "lowpass";
+        engineFilter.frequency.setValueAtTime(140, audioCtx.currentTime);
+
+        engineGain = audioCtx.createGain();
+        engineGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+        engineOsc = audioCtx.createOscillator();
+        engineOsc.type = "triangle";
+        engineOsc.frequency.setValueAtTime(36, audioCtx.currentTime);
+
+        engineSubOsc = audioCtx.createOscillator();
+        engineSubOsc.type = "sine";
+        engineSubOsc.frequency.setValueAtTime(18, audioCtx.currentTime);
+
+        engineOsc.connect(engineFilter);
+        engineSubOsc.connect(engineFilter);
+        engineFilter.connect(engineGain);
+        engineGain.connect(audioCtx.destination);
+
+        engineOsc.start();
+        engineSubOsc.start();
+
+        startBGM();
+      }
+    }
+
+    function updateEngineSound(speedRatio) {
+      if (!audioCtx || isMuted || !engineOsc || !engineFilter) return;
+      const absRatio = Math.min(1.0, Math.abs(speedRatio));
+      
+      const targetFreq = 36 + absRatio * 44; 
+      engineOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
+      engineSubOsc.frequency.setTargetAtTime(targetFreq * 0.5, audioCtx.currentTime, 0.1);
+      
+      const targetFilter = 140 + absRatio * 220;
+      engineFilter.frequency.setTargetAtTime(targetFilter, audioCtx.currentTime, 0.1);
+      engineGain.gain.setTargetAtTime(0.035 + absRatio * 0.045, audioCtx.currentTime, 0.1);
+    }
+
+    function playCrashSound() {
+      if (!audioCtx || isMuted) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    function playWrongSound() {
+      if (!audioCtx || isMuted) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(110, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    function playSuccessSound() {
+      if (!audioCtx || isMuted) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.1);
+        osc.stop(audioCtx.currentTime + idx * 0.1 + 0.25);
+      });
+    }
+
+    function startBGM() {
+      if (bgmInterval) clearInterval(bgmInterval);
+      const melody = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23];
+      let step = 0;
+      bgmInterval = setInterval(() => {
+        if (!audioCtx || isMuted) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(melody[step % melody.length], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.22);
+        step++;
+      }, 300);
+    }
+
+    function toggleAudio() {
+      isMuted = !isMuted;
+      if (engineGain) engineGain.gain.setValueAtTime(isMuted ? 0 : 0.04, audioCtx.currentTime);
+      document.getElementById("audio-icon").style.fill = isMuted ? "#94a3b8" : "#38bdf8";
+    }
+
+    let scene, camera, renderer;
+    let carGroup;
+    let checkpoints = [];
+    let obstacles = [];
+    let score = 0;
+    let currentStage = 0; 
+    let solvedQuestionsCount = 0; 
+    let isModalOpen = false;
+    let isGameOver = false;
+
+    let questionFailedAttempts = {};
+    let keys = { up: false, down: false, left: false, right: false };
+
+    let carPhysics = {
+      x: 0, z: 0,
+      angle: 0,
+      speed: 0,
+      maxSpeed: 1.35,
+      accel: 0.03,
+      friction: 0.018,
+      turnSpeed: 0.038,
+      spinTimer: 0
+    };
+
+    const waypoints = [
+      { x: 0, z: -150, stage: 1 },
+      { x: 0, z: -350, stage: 2 },
+      { x: 0, z: -550, stage: 3 },
+      { x: 0, z: -750, stage: 4 },
+      { x: 0, z: -950, stage: 5 },
+      { x: 0, z: -1150, stage: 6 },
+      { x: 0, z: -1350, stage: 7 },
+      { x: 0, z: -1550, stage: 8 },
+      { x: 0, z: -1750, stage: 9 },
+      { x: 0, z: -1950, stage: 10 },
+      { x: 0, z: -2150, stage: 11 },
+      { x: 0, z: -2350, stage: 12 }
+    ];
+
+    let pendingRepeatQuestions = [];
+
+    function updateProgressHUD() {
+      const pct = Math.round((solvedQuestionsCount / 20) * 100);
+      document.getElementById("hud-progress").innerText = `${pct}% (ข้อ ${solvedQuestionsCount}/20)`;
+      document.getElementById("hud-score").innerText = `${Number(score.toFixed(1))} / 20`;
+      document.getElementById("hud-stage").innerText = `ด่าน ${Math.min(currentStage + 1, 12)} / 12`;
+    }
+
+    function startGame() {
+      document.getElementById("start-screen").style.display = "none";
+      initAudio();
+      init3DWorld();
+      setupInputListeners();
+      updateProgressHUD();
+      animate();
+    }
+
+    function init3DWorld() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x7dd3fc);
+      scene.fog = new THREE.Fog(0x7dd3fc, 80, 500);
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      document.getElementById("three-container").appendChild(renderer.domElement);
+
+      window.addEventListener("resize", onWindowResize);
+
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.85);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xfff7ed, 0.9);
+      dirLight.position.set(60, 120, 60);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      buildWorldEnvironment();
+      buildSportsCar();
+      buildCheckpointsAndBarriers();
+      buildObstacles();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function buildWorldEnvironment() {
+      const groundGeo = new THREE.PlaneGeometry(800, 3200);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.z = -1200;
+      scene.add(ground);
+
+      const roadGeo = new THREE.PlaneGeometry(32, 3000);
+      const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+      const road = new THREE.Mesh(roadGeo, roadMat);
+      road.rotation.x = -Math.PI / 2;
+      road.position.y = 0.05;
+      road.position.z = -1200;
+      scene.add(road);
+
+      for (let z = 50; z > -2600; z -= 14) {
+        const lineGeo = new THREE.PlaneGeometry(0.35, 8);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+        const leftYellow = new THREE.Mesh(lineGeo, lineMat);
+        leftYellow.rotation.x = -Math.PI / 2;
+        leftYellow.position.set(-0.4, 0.08, z);
+        scene.add(leftYellow);
+
+        const rightYellow = leftYellow.clone();
+        rightYellow.position.x = 0.4;
+        scene.add(rightYellow);
+      }
+
+      for (let z = 50; z > -2600; z -= 16) {
+        const dashGeo = new THREE.PlaneGeometry(0.4, 6);
+        const dashMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const leftDash = new THREE.Mesh(dashGeo, dashMat);
+        leftDash.rotation.x = -Math.PI / 2;
+        leftDash.position.set(-8, 0.08, z);
+        scene.add(leftDash);
+
+        const rightDash = leftDash.clone();
+        rightDash.position.x = 8;
+        scene.add(rightDash);
+      }
+
+      const curbGeo = new THREE.BoxGeometry(4, 0.5, 3000);
+      const curbMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
+      const leftCurb = new THREE.Mesh(curbGeo, curbMat);
+      leftCurb.position.set(-18, 0.25, -1200);
+      scene.add(leftCurb);
+
+      const rightCurb = new THREE.Mesh(curbGeo, curbMat);
+      rightCurb.position.set(18, 0.25, -1200);
+      scene.add(rightCurb);
+
+      const colors = [0xef4444, 0x3b82f6, 0xf59e0b, 0x10b981, 0x8b5cf6, 0xec4899, 0x06b6d4, 0xf97316];
+      for (let z = 20; z > -2500; z -= 38) {
+        const bH1 = 28 + Math.random() * 40;
+        const bW1 = 20 + Math.random() * 8;
+        const bGeo1 = new THREE.BoxGeometry(bW1, bH1, 28);
+        const bMat1 = new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+        const b1 = new THREE.Mesh(bGeo1, bMat1);
+        b1.position.set(-32 - bW1 / 2, bH1 / 2, z);
+        scene.add(b1);
+
+        const bH2 = 28 + Math.random() * 40;
+        const bW2 = 20 + Math.random() * 8;
+        const bGeo2 = new THREE.BoxGeometry(bW2, bH2, 28);
+        const bMat2 = new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+        const b2 = new THREE.Mesh(bGeo2, bMat2);
+        b2.position.set(32 + bW2 / 2, bH2 / 2, z);
+        scene.add(b2);
+
+        if (z % 76 === 0) {
+          createTree(-21, z);
+          createTree(21, z);
+        }
+      }
+    }
+
+    function createTree(x, z) {
+      const trunkGeo = new THREE.CylinderGeometry(0.5, 0.6, 6);
+      const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.set(x, 3, z);
+      scene.add(trunk);
+
+      const leavesGeo = new THREE.ConeGeometry(3.5, 8, 8);
+      const leavesMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+      const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+      leaves.position.set(x, 8, z);
+      scene.add(leaves);
+    }
+
+    function buildSportsCar() {
+      carGroup = new THREE.Group();
+
+      const bodyGeo = new THREE.BoxGeometry(3.8, 1.35, 7.2);
+      const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e3a8a });
+      const carBody = new THREE.Mesh(bodyGeo, bodyMat);
+      carBody.position.y = 1.0;
+      carGroup.add(carBody);
+
+      const cabinGeo = new THREE.BoxGeometry(3.2, 1.2, 3.8);
+      const cabinMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+      const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+      cabin.position.set(0, 2.0, -0.4);
+      carGroup.add(cabin);
+
+      const glassGeo = new THREE.BoxGeometry(3.1, 1.0, 3.6);
+      const glassMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8 });
+      const glass = new THREE.Mesh(glassGeo, glassMat);
+      glass.position.set(0, 2.05, -0.4);
+      carGroup.add(glass);
+
+      const taxiGeo = new THREE.BoxGeometry(1.4, 0.4, 0.65);
+      const taxiMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+      const taxi = new THREE.Mesh(taxiGeo, taxiMat);
+      taxi.position.set(0, 2.8, -0.3);
+      carGroup.add(taxi);
+
+      const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.6, 16);
+      const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
+      const wheelPositions = [
+        [-1.9, 0.8, 2.2],
+        [1.9, 0.8, 2.2],
+        [-1.9, 0.8, -2.2],
+        [1.9, 0.8, -2.2]
+      ];
+      wheelPositions.forEach(pos => {
+        const w = new THREE.Mesh(wheelGeo, wheelMat);
+        w.rotation.z = Math.PI / 2;
+        w.position.set(...pos);
+        carGroup.add(w);
+      });
+
+      carGroup.position.set(0, 0, 0);
+      scene.add(carGroup);
+    }
+
+    function buildCheckpointsAndBarriers() {
+      waypoints.forEach((wp, idx) => {
+        const gate = new THREE.Group();
+        gate.position.set(wp.x, 0, wp.z);
+
+        const pGeo = new THREE.BoxGeometry(2, 16, 2);
+        const pMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+        const pL = new THREE.Mesh(pGeo, pMat);
+        pL.position.set(-17, 8, 0);
+        gate.add(pL);
+
+        const pR = pL.clone();
+        pR.position.x = 17;
+        gate.add(pR);
+
+        const barGeo = new THREE.BoxGeometry(36, 2.2, 2.2);
+        const barMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+        const bar = new THREE.Mesh(barGeo, barMat);
+        bar.position.set(0, 15, 0);
+        gate.add(bar);
+
+        const laserGeo = new THREE.PlaneGeometry(32, 14);
+        const laserMat = new THREE.MeshBasicMaterial({
+          color: 0xef4444,
+          transparent: true,
+          opacity: 0.55,
+          side: THREE.DoubleSide
+        });
+        const laser = new THREE.Mesh(laserGeo, laserMat);
+        laser.position.set(0, 7, 0);
+        gate.add(laser);
+
+        const signGeo = new THREE.BoxGeometry(9, 3.2, 0.6);
+        const signMat = new THREE.MeshLambertMaterial({ color: 0x1e3a8a });
+        const sign = new THREE.Mesh(signGeo, signMat);
+        sign.position.set(0, 13, 0.5);
+        gate.add(sign);
+
+        scene.add(gate);
+        checkpoints.push({ group: gate, laser: laser, z: wp.z, stage: wp.stage, passed: false });
+      });
+    }
+
+    function buildObstacles() {
+      obstacles = [];
+      for (let z = -50; z > -2400; z -= 32) {
+        const nearGate = waypoints.some(wp => Math.abs(wp.z - z) < 16);
+        if (nearGate) continue;
+
+        const typeRand = Math.random();
+        const laneX = (Math.random() - 0.5) * 22;
+
+        if (typeRand < 0.4) {
+          const rockGeo = new THREE.DodecahedronGeometry(1.6 + Math.random() * 0.8, 1);
+          const rockMat = new THREE.MeshLambertMaterial({ color: 0x64748b, flatShading: true });
+          const rock = new THREE.Mesh(rockGeo, rockMat);
+          rock.position.set(laneX, 1.2, z);
+          rock.rotation.set(Math.random(), Math.random(), Math.random());
+          scene.add(rock);
+          obstacles.push({ mesh: rock, x: laneX, z: z, radius: 2.2, type: 'rock', hit: false });
+        } else if (typeRand < 0.75) {
+          const coneGeo = new THREE.ConeGeometry(0.9, 2.4, 8);
+          const coneMat = new THREE.MeshLambertMaterial({ color: 0xea580c });
+          const cone = new THREE.Mesh(coneGeo, coneMat);
+          cone.position.set(laneX, 1.2, z);
+          scene.add(cone);
+          obstacles.push({ mesh: cone, x: laneX, z: z, radius: 1.8, type: 'cone', hit: false });
+        }
+      }
+    }
+
+    function setupInputListeners() {
+      window.addEventListener("keydown", e => {
+        if (isModalOpen) return;
+        const k = e.key.toLowerCase();
+        if (k === "arrowup" || k === "w") keys.up = true;
+        if (k === "arrowdown" || k === "s") keys.down = true;
+        if (k === "arrowleft" || k === "a") keys.left = true;
+        if (k === "arrowright" || k === "d") keys.right = true;
+      });
+
+      window.addEventListener("keyup", e => {
+        const k = e.key.toLowerCase();
+        if (k === "arrowup" || k === "w") keys.up = false;
+        if (k === "arrowdown" || k === "s") keys.down = false;
+        if (k === "arrowleft" || k === "a") keys.left = false;
+        if (k === "arrowright" || k === "d") keys.right = false;
+      });
+
+      const bindTouch = (id, action) => {
+        const el = document.getElementById(id);
+        el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[action] = true; });
+        el.addEventListener("touchend", () => keys[action] = false);
+      };
+      bindTouch("btn-up", "up");
+      bindTouch("btn-down", "down");
+      bindTouch("btn-left", "left");
+      bindTouch("btn-right", "right");
+    }
+
+    function updateGamePhysics() {
+      if (isModalOpen) return;
+
+      if (carPhysics.spinTimer > 0) {
+        carPhysics.spinTimer--;
+        carPhysics.angle += 0.12;
+        carPhysics.speed *= 0.96;
+      } else {
+        if (keys.up) {
+          carPhysics.speed += carPhysics.accel;
+        } else if (keys.down) {
+          carPhysics.speed -= carPhysics.accel * 1.5;
+        } else {
+          if (carPhysics.speed > 0) carPhysics.speed = Math.max(0, carPhysics.speed - carPhysics.friction);
+          if (carPhysics.speed < 0) carPhysics.speed = Math.min(0, carPhysics.speed + carPhysics.friction);
+        }
+        carPhysics.speed = Math.max(-0.5, Math.min(carPhysics.speed, carPhysics.maxSpeed));
+
+        if (carPhysics.speed !== 0) {
+          const dir = carPhysics.speed > 0 ? 1 : -1;
+          if (keys.left) carPhysics.angle += carPhysics.turnSpeed * dir;
+          if (keys.right) carPhysics.angle -= carPhysics.turnSpeed * dir;
+        }
+      }
+
+      updateEngineSound(carPhysics.speed / carPhysics.maxSpeed);
+
+      const nextX = carPhysics.x - Math.sin(carPhysics.angle) * carPhysics.speed;
+      const nextZ = carPhysics.z - Math.cos(carPhysics.angle) * carPhysics.speed;
+
+      carPhysics.x = Math.max(-13, Math.min(13, nextX));
+
+      obstacles.forEach(ob => {
+        if (!ob.hit) {
+          const dist = Math.hypot(carPhysics.x - ob.x, carPhysics.z - ob.z);
+          if (dist < ob.radius + 1.8) {
+            ob.hit = true;
+            carPhysics.spinTimer = 15;
+            carPhysics.speed *= 0.5;
+            playCrashSound();
+
+            renderer.domElement.style.filter = "brightness(1.3)";
+            setTimeout(() => renderer.domElement.style.filter = "none", 100);
+          }
+        }
+      });
+
+      let laserBlocked = false;
+      checkpoints.forEach((cp, idx) => {
+        if (!cp.passed) {
+          if (carPhysics.z > cp.z && nextZ <= cp.z + 1.5) {
+            laserBlocked = true;
+            carPhysics.speed = 0;
+            startStageSequence(idx);
+          }
+        }
+      });
+
+      if (!laserBlocked) {
+        carPhysics.z = nextZ;
+      }
+
+      carGroup.position.set(carPhysics.x, 0, carPhysics.z);
+      carGroup.rotation.y = carPhysics.angle;
+
+      const cameraOffset = new THREE.Vector3(0, 6.2, 14.0);
+      cameraOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), carPhysics.angle);
+      camera.position.x = carPhysics.x + cameraOffset.x;
+      camera.position.y = 6.2;
+      camera.position.z = carPhysics.z + cameraOffset.z;
+
+      const lookAhead = new THREE.Vector3(
+        carPhysics.x - Math.sin(carPhysics.angle) * 8,
+        2.0,
+        carPhysics.z - Math.cos(carPhysics.angle) * 8
+      );
+      camera.lookAt(lookAhead);
+
+      const mph = Math.round(Math.abs(carPhysics.speed) * 52);
+      document.getElementById("speed-val").innerText = mph;
+      document.getElementById("gear-val").innerText = carPhysics.speed > 0.05 ? 'D' : (carPhysics.speed < -0.05 ? 'R' : 'N');
+
+      renderMinimap();
+    }
+
+    let activeStageIdx = 0;
+    let stageQuestionsQueue = [];
+    let currentQuestion = null;
+    let selectedMatchAction = null;
+    let currentPairsSolved = 0;
+
+    function startStageSequence(stageIdx) {
+      activeStageIdx = stageIdx;
+      stageQuestionsQueue = questionsPool.filter(q => q.stage === (stageIdx + 1));
+
+      const readyToRepeat = pendingRepeatQuestions.filter(item => (stageIdx + 1) >= item.targetStage);
+      readyToRepeat.forEach(item => {
+        const clonedQ = { ...item.qObj, isRepeatMode: true };
+        stageQuestionsQueue.push(clonedQ);
+      });
+      
+      pendingRepeatQuestions = pendingRepeatQuestions.filter(item => (stageIdx + 1) < item.targetStage);
+      loadNextQuestionInStage();
+    }
+
+    function loadNextQuestionInStage() {
+      if (stageQuestionsQueue.length === 0) {
+        finishStage(activeStageIdx);
+        return;
+      }
+      currentQuestion = stageQuestionsQueue.shift();
+      openCheckpointModal(currentQuestion);
+    }
+
+    function openCheckpointModal(qObj) {
+      isModalOpen = true;
+
+      const repeatTag = qObj.isRepeatMode ? ` <span style="color:#ef4444;">[ทบทวนความชำนาญ]</span>` : '';
+      document.getElementById("cp-badge").innerHTML = `
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="#854d0e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        CHECKPOINT ${qObj.stage} (ข้อที่ ${qObj.qId}/20)${repeatTag}
+      `;
+      document.getElementById("cp-pts").innerText = `+${qObj.pts} คะแนน`;
+      document.getElementById("cp-q").innerText = qObj.q;
+
+      renderCheckpointTask(qObj);
+
+      document.getElementById("checkpoint-modal").style.display = "flex";
+      document.getElementById("knowledge-modal").style.display = "none";
+    }
+
+    function renderCheckpointTask(m) {
+      const stageBox = document.getElementById("cp-minigame-area");
+      stageBox.innerHTML = "";
+
+      if (m.mode === "matching") {
+        selectedMatchAction = null;
+        currentPairsSolved = 0;
+
+        const container = document.createElement("div");
+        container.className = "match-container";
+
+        const colLeft = document.createElement("div");
+        colLeft.className = "match-col";
+
+        const colRight = document.createElement("div");
+        colRight.className = "match-col";
+
+        const shuffledKeys = [...m.pairs].sort(() => Math.random() - 0.5);
+
+        m.pairs.forEach(pair => {
+          const btnAction = document.createElement("div");
+          btnAction.className = "match-card";
+          btnAction.innerText = pair.action;
+          btnAction.dataset.match = pair.key;
+
+          btnAction.onclick = () => {
+            if (btnAction.classList.contains("paired")) return;
+            colLeft.querySelectorAll(".match-card").forEach(c => c.classList.remove("selected"));
+            btnAction.classList.add("selected");
+            selectedMatchAction = btnAction;
+          };
+          colLeft.appendChild(btnAction);
+        });
+
+        shuffledKeys.forEach(pair => {
+          const btnKey = document.createElement("div");
+          btnKey.className = "match-card";
+          btnKey.innerText = pair.key;
+          btnKey.dataset.key = pair.key;
+
+          btnKey.onclick = () => {
+            if (btnKey.classList.contains("paired")) return;
+            if (!selectedMatchAction) {
+              alert("กรุณาเลือกคำสั่งฝั่งซ้ายก่อนจับคู่ครับ");
+              return;
+            }
+
+            if (selectedMatchAction.dataset.match === btnKey.dataset.key) {
+              selectedMatchAction.classList.remove("selected");
+              selectedMatchAction.classList.add("paired");
+              btnKey.classList.add("paired");
+              selectedMatchAction = null;
+              currentPairsSolved++;
+
+              if (currentPairsSolved === m.pairs.length) {
+                setTimeout(() => submitCorrectTask(m), 300);
+              }
+            } else {
+              selectedMatchAction.classList.remove("selected");
+              selectedMatchAction = null;
+              submitWrongTask(m);
+            }
+          };
+          colRight.appendChild(btnKey);
+        });
+
+        container.appendChild(colLeft);
+        container.appendChild(colRight);
+        stageBox.appendChild(container);
+      }
+      else if (m.mode === "ribbon") {
+        const tabs = ["ไฟล์ (File)", "หน้าแรก (Home)", "แทรก (Insert)", "เค้าโครง (Layout)"];
+        const ribbonDiv = document.createElement("div");
+        ribbonDiv.className = "ribbon-bar";
+        tabs.forEach(t => {
+          const btn = document.createElement("button");
+          btn.className = "ribbon-btn";
+          btn.innerText = t;
+          btn.onclick = () => {
+            if (t.includes(m.target)) submitCorrectTask(m);
+            else submitWrongTask(m);
+          };
+          ribbonDiv.appendChild(btn);
+        });
+        stageBox.appendChild(ribbonDiv);
+      }
+      else if (m.mode === "align") {
+        stageBox.innerHTML = `
+          <div class="doc-preview-box">
+            <div id="sample-text" style="font-size:0.92rem; font-weight:600; color:#0f172a; text-align:left;">หัวข้อรายงาน ม.1</div>
+            <div style="height:5px; background:#e2e8f0; width:100%; border-radius:4px; margin-top:6px;"></div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="ribbon-btn" onclick="applyAlignment('left')">ชิดซ้าย</button>
+            <button class="ribbon-btn" style="background:#e0f2fe; border-color:#38bdf8;" onclick="applyAlignment('center')">กึ่งกลาง</button>
+            <button class="ribbon-btn" onclick="applyAlignment('right')">ชิดขวา</button>
+          </div>
+        `;
+      }
+      else if (m.mode === "table_grid") {
+        const grid = document.createElement("div");
+        grid.className = "table-picker";
+        for (let r = 1; r <= 3; r++) {
+          for (let c = 1; c <= 4; c++) {
+            const cell = document.createElement("div");
+            cell.className = "table-cell";
+            cell.dataset.r = r;
+            cell.dataset.c = c;
+            cell.onclick = () => {
+              highlightGrid(c, r);
+              if (c === m.targetCols && r === m.targetRows) {
+                setTimeout(() => submitCorrectTask(m), 200);
+              } else {
+                setTimeout(() => submitWrongTask(m), 200);
+              }
+            };
+            grid.appendChild(cell);
+          }
+        }
+        stageBox.innerHTML = `<div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">แตะช่องเพื่อระบุขนาดตารางที่โจทย์ต้องการ:</div>`;
+        stageBox.appendChild(grid);
+      }
+      else if (m.mode === "choice") {
+        const choiceDiv = document.createElement("div");
+        choiceDiv.style.display = "flex";
+        choiceDiv.style.flexDirection = "column";
+        choiceDiv.style.gap = "10px";
+        choiceDiv.style.width = "100%";
+
+        m.opts.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "ribbon-btn";
+          btn.style.textAlign = "left";
+          btn.style.padding = "12px 18px";
+          btn.innerText = opt;
+          btn.onclick = () => {
+            if (opt.trim() === m.target.trim()) submitCorrectTask(m);
+            else submitWrongTask(m);
+          };
+          choiceDiv.appendChild(btn);
+        });
+        stageBox.appendChild(choiceDiv);
+      }
+      else if (m.mode === "image_choice") {
+        const imgGrid = document.createElement("div");
+        imgGrid.className = "image-choices-grid";
+
+        m.options.forEach(opt => {
+          const btn = document.createElement("div");
+          btn.className = "img-choice-btn";
+          btn.innerHTML = `${opt.svg}<span>${opt.label}</span>`;
+          btn.onclick = () => {
+            if (opt.id === m.target) submitCorrectTask(m);
+            else submitWrongTask(m);
+          };
+          imgGrid.appendChild(btn);
+        });
+        stageBox.appendChild(imgGrid);
+      }
+      else if (m.mode === "image_query") {
+        const imgPreview = document.createElement("div");
+        imgPreview.className = "image-q-preview";
+        imgPreview.innerHTML = m.customHtml;
+        stageBox.appendChild(imgPreview);
+
+        const choiceDiv = document.createElement("div");
+        choiceDiv.style.display = "flex";
+        choiceDiv.style.flexDirection = "column";
+        choiceDiv.style.gap = "10px";
+        choiceDiv.style.width = "100%";
+
+        m.opts.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "ribbon-btn";
+          btn.style.textAlign = "left";
+          btn.style.padding = "12px 18px";
+          btn.innerText = opt;
+          btn.onclick = () => {
+            if (opt.trim() === m.target.trim()) submitCorrectTask(m);
+            else submitWrongTask(m);
+          };
+          choiceDiv.appendChild(btn);
+        });
+        stageBox.appendChild(choiceDiv);
+      }
+    }
+
+    function highlightGrid(cols, rows) {
+      document.querySelectorAll(".table-cell").forEach(cell => {
+        const c = parseInt(cell.dataset.c);
+        const r = parseInt(cell.dataset.r);
+        if (c <= cols && r <= rows) cell.classList.add("selected");
+        else cell.classList.remove("selected");
+      });
+    }
+
+    function applyAlignment(type) {
+      document.getElementById("sample-text").style.textAlign = type;
+      if (type === "center") {
+        setTimeout(() => submitCorrectTask(currentQuestion), 250);
+      } else {
+        setTimeout(() => submitWrongTask(currentQuestion), 250);
+      }
+    }
+
+    function submitCorrectTask(m) {
+      if (!questionFailedAttempts[m.qId]) {
+        score += m.pts;
+      }
+      if (!m.isRepeatMode) {
+        solvedQuestionsCount++;
+      }
+      playSuccessSound();
+      updateProgressHUD();
+
+      document.getElementById("checkpoint-modal").style.display = "none";
+      loadNextQuestionInStage();
+    }
+
+    function submitWrongTask(m) {
+      questionFailedAttempts[m.qId] = true;
+      
+      const repeatDelay = 2;
+      const futureStage = Math.min(activeStageIdx + 1 + repeatDelay, 12);
+      
+      const existsInQueue = pendingRepeatQuestions.some(item => item.qObj.qId === m.qId);
+      if (!existsInQueue) {
+        pendingRepeatQuestions.push({
+          qObj: m,
+          targetStage: futureStage
+        });
+      }
+
+      playWrongSound();
+      showKnowledgeSheet(m);
+    }
+
+    function showKnowledgeSheet(m) {
+      document.getElementById("checkpoint-modal").style.display = "none";
+      document.getElementById("kn-subject").innerText = m.knTitle;
+      document.getElementById("kn-text").innerHTML = m.knText;
+      document.getElementById("knowledge-modal").style.display = "flex";
+    }
+
+    function retryMission() {
+      document.getElementById("knowledge-modal").style.display = "none";
+      openCheckpointModal(currentQuestion);
+    }
+
+    function finishStage(stageIdx) {
+      checkpoints[stageIdx].passed = true;
+      checkpoints[stageIdx].laser.material.color.setHex(0x10b981);
+      checkpoints[stageIdx].laser.material.opacity = 0.15;
+
+      currentStage = stageIdx + 1;
+      updateProgressHUD();
+
+      document.getElementById("checkpoint-modal").style.display = "none";
+      isModalOpen = false;
+
+      carPhysics.z -= 4.5;
+
+      if (currentStage >= 12) {
+        if (pendingRepeatQuestions.length > 0) {
+          const nextItem = pendingRepeatQuestions.shift();
+          const clonedQ = { ...nextItem.qObj, isRepeatMode: true };
+          stageQuestionsQueue.push(clonedQ);
+          openCheckpointModal(clonedQ);
+        } else {
+          finishGame();
+        }
+      }
+    }
+
+    function renderMinimap() {
+      const mCanvas = document.getElementById("minimapCanvas");
+      const mCtx = mCanvas.getContext("2d");
+      const mw = mCanvas.width;
+      const mh = mCanvas.height;
+
+      mCtx.clearRect(0, 0, mw, mh);
+
+      mCtx.fillStyle = "#15803d";
+      mCtx.fillRect(0, 0, mw, mh);
+
+      mCtx.fillStyle = "#1e293b";
+      mCtx.fillRect(mw / 2 - 20, 0, 40, mh);
+
+      mCtx.strokeStyle = "#facc15";
+      mCtx.lineWidth = 2;
+      mCtx.setLineDash([4, 4]);
+      mCtx.beginPath();
+      mCtx.moveTo(mw / 2, 0);
+      mCtx.lineTo(mw / 2, mh);
+      mCtx.stroke();
+      mCtx.setLineDash([]);
+
+      waypoints.forEach((wp, i) => {
+        const relZ = wp.z - carPhysics.z;
+        const mapY = mh / 2 + (relZ / 400) * (mh / 2);
+
+        if (mapY >= -10 && mapY <= mh + 10) {
+          const isPassed = checkpoints[i] ? checkpoints[i].passed : false;
+          mCtx.beginPath();
+          mCtx.arc(mw / 2, mapY, 8, 0, Math.PI * 2);
+          mCtx.fillStyle = isPassed ? "#10b981" : (i === currentStage ? "#facc15" : "#ef4444");
+          mCtx.fill();
+          mCtx.strokeStyle = "#ffffff";
+          mCtx.lineWidth = 1.5;
+          mCtx.stroke();
+
+          mCtx.fillStyle = "#000";
+          mCtx.font = "bold 9px Kanit";
+          mCtx.textAlign = "center";
+          mCtx.textBaseline = "middle";
+          mCtx.fillText(i + 1, mw / 2, mapY);
+        }
+      });
+
+      mCtx.save();
+      mCtx.translate(mw / 2 + (carPhysics.x / 14) * 16, mh / 2);
+      mCtx.rotate(-carPhysics.angle);
+      mCtx.beginPath();
+      mCtx.moveTo(0, -10);
+      mCtx.lineTo(7, 8);
+      mCtx.lineTo(0, 4);
+      mCtx.lineTo(-7, 8);
+      mCtx.closePath();
+      mCtx.fillStyle = "#38bdf8";
+      mCtx.fill();
+      mCtx.strokeStyle = "#ffffff";
+      mCtx.lineWidth = 1.5;
+      mCtx.stroke();
+      mCtx.restore();
+    }
+
+    function finishGame() {
+      isGameOver = true;
+      document.getElementById("finish-screen").style.display = "flex";
+      const displayScore = Number(score.toFixed(1));
+      document.getElementById("final-score").innerText = `${displayScore} / 20`;
+
+      let rank = "ผู้ขับขี่ฝึกหัด (ควรทบทวนเนื้อหาเพิ่มเติม)";
+      if (score >= 17) rank = "ยอดนักขับระดับ Master (ยอดเยี่ยมมาก)";
+      else if (score >= 14) rank = "นักขับเชี่ยวชาญ Microsoft Word";
+      else if (score >= 10) rank = "ผ่านเกณฑ์การทดสอบ";
+      document.getElementById("final-rank").innerText = `ระดับ: ${rank}`;
+
+      const code = `WR3D-${btoa(encodeURIComponent(playerName)).slice(0, 5).toUpperCase()}-${displayScore}PTS-${Date.now().toString().slice(-4)}`;
+      document.getElementById("cert-code").innerText = `รหัสยืนยันผลการขับขี่: ${code}`;
+
+      const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScDqf_3sbr3G8XbgR4atsdlcKscqiL_snt7iXLfACcwBjGj1g/formResponse";
+      const formData = new FormData();
+      formData.append("entry.1063080801", playerName);
+      formData.append("entry.557379494", displayScore);
+      formData.append("entry.851103684", code);
+
+      fetch(FORM_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      }).catch(err => console.error("Error saving score:", err));
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      updateGamePhysics();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
