@@ -1,614 +1,612 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Word Kart: Rush Drift Circuit</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Kanit:wght@500;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
-    html, body { width: 100vw; height: 100vh; overflow: hidden; background: #60a5fa; position: fixed; inset: 0; font-family: 'Kanit', sans-serif; }
-    #three-container { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; }
-
-    /* MISSION HUD ด้านบน */
-    #mission-banner {
-      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 58, 138, 0.95));
-      border: 3px solid #38bdf8; border-radius: 26px; padding: 10px 30px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 3px; color: #fff; z-index: 45; box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 20px rgba(56, 189, 248, 0.4);
-      min-width: 340px; text-align: center;
-    }
-    .mission-badge { font-family: 'Chakra Petch'; font-size: 0.92rem; font-weight: 900; color: #facc15; letter-spacing: 0.5px; }
-    .mission-target { font-size: 1.3rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 12px rgba(56, 189, 248, 0.8); }
-
-    /* STATS & COINS */
-    #stat-hud { position: fixed; top: 16px; right: 18px; display: flex; gap: 10px; z-index: 50; }
-    .hud-pill {
-      background: rgba(15, 23, 42, 0.9); border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px; padding: 6px 18px; display: flex; align-items: center; gap: 8px;
-      font-family: 'Chakra Petch'; font-size: 1.25rem; font-weight: 900; color: #fff;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-    }
-
-    /* SPEEDOMETER & NITRO ALERT */
-    #speedo-box {
-      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; z-index: 50; pointer-events: none;
-    }
-    .speed-number {
-      font-family: 'Chakra Petch'; font-size: 3.4rem; font-weight: 900; font-style: italic;
-      color: #facc15; line-height: 1; text-shadow: 0 0 16px rgba(250, 204, 21, 0.6), 0 4px 0 #000;
-    }
-    .vehicle-tag {
-      font-family: 'Chakra Petch'; font-weight: 900; font-size: 0.95rem; color: #38bdf8;
-      background: rgba(15, 23, 42, 0.85); padding: 3px 12px; border-radius: 999px; border: 1px solid #38bdf8; margin-top: 4px;
-    }
-    .nitro-boost-text {
-      font-family: 'Chakra Petch'; font-weight: 900; font-size: 1.2rem; color: #ef4444;
-      animation: flash 0.3s infinite alternate; display: none; text-shadow: 0 0 12px #ef4444;
-    }
-    @keyframes flash { from { transform: scale(0.95); opacity: 0.7; } to { transform: scale(1.1); opacity: 1; } }
-
-    /* CONTROLS (ปุ่มกดแบบเกมคอนโซลแก้วโปร่งแสง) */
-    #mobile-controls {
-      position: fixed; bottom: 26px; left: 0; right: 0;
-      display: flex; justify-content: space-between; padding: 0 30px;
-      pointer-events: none; z-index: 60;
-    }
-    .pad-cluster { pointer-events: auto; display: flex; gap: 14px; }
-    .v-btn {
-      width: 78px; height: 78px; border-radius: 26px;
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.9));
-      border: 3px solid rgba(255, 255, 255, 0.35); display: flex; justify-content: center;
-      align-items: center; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-      transition: transform 0.08s;
-    }
-    .v-btn:active { transform: scale(0.9); background: rgba(56, 189, 248, 0.5); border-color: #38bdf8; }
-    .v-btn svg { width: 38px; height: 38px; fill: #ffffff; }
-
-    #toast-msg {
-      position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-      font-family: 'Chakra Petch'; font-size: 2.8rem; font-weight: 900; font-style: italic;
-      color: #4ade80; text-shadow: 0 0 25px #22c55e, 0 4px 0 #000;
-      pointer-events: none; z-index: 100; opacity: 0; transition: all 0.25s;
-    }
-
-    #victory-modal {
-      position: fixed; inset: 0; background: rgba(10, 15, 29, 0.88); backdrop-filter: blur(14px);
-      display: none; justify-content: center; align-items: center; padding: 18px; z-index: 200;
-    }
-    .victory-box {
-      background: linear-gradient(145deg, #0284c7 0%, #0369a1 40%, #0f172a 100%);
-      border: 5px solid #38bdf8; border-radius: 34px;
-      padding: 34px; max-width: 480px; width: 100%; text-align: center;
-      box-shadow: 0 0 50px rgba(56, 189, 248, 0.5); color: #fff;
-    }
-    .btn-upgrade {
-      width: 100%; padding: 16px; border-radius: 20px; border: none;
-      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-      color: #fff; font-family: 'Chakra Petch'; font-size: 1.3rem; font-weight: 900;
-      cursor: pointer; box-shadow: 0 6px 0 #047857; margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Word Kart: Rush Drift Circuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Kanit:wght@500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;touch-action:manipulation}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#60a5fa;position:fixed;inset:0;font-family:'Kanit',sans-serif;color:#fff}
+#three-container{position:absolute;inset:0;z-index:1}
+#mission-banner{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,58,138,.95));border:3px solid #38bdf8;border-radius:22px;padding:6px 22px;text-align:center;z-index:45;box-shadow:0 8px 24px rgba(0,0,0,.45);min-width:300px}
+.mission-badge{font:900 .8rem 'Chakra Petch';color:#facc15}
+.mission-target{font-size:1.1rem;font-weight:900;text-shadow:0 0 12px rgba(56,189,248,.8)}
+#rank-list{position:fixed;top:12px;left:12px;width:150px;z-index:45}
+.rk{display:flex;gap:6px;align-items:center;background:rgba(15,23,42,.78);font:800 .85rem 'Kanit';padding:1px 8px 1px 4px;border-left:4px solid #38bdf8;margin-bottom:3px;border-radius:6px}
+.rk b{font:900 .95rem 'Chakra Petch';background:#1e3a8a;border-radius:4px;min-width:20px;text-align:center}
+.rk.me{background:#facc15;color:#0f172a;border-color:#fff}.rk.me b{background:#0f172a;color:#facc15}
+#right-hud{position:fixed;top:12px;right:12px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.hud-pill{background:rgba(15,23,42,.9);border:2px solid rgba(255,255,255,.3);border-radius:18px;padding:3px 14px;font:900 1.1rem 'Chakra Petch';box-shadow:0 5px 14px rgba(0,0,0,.4)}
+#minimap{width:120px;height:120px;background:rgba(15,23,42,.65);border:2px solid rgba(255,255,255,.35);border-radius:14px}
+#speedo-box{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:50;pointer-events:none}
+.speed-number{font:900 3rem/1 'Chakra Petch';font-style:italic;color:#facc15;text-shadow:0 0 16px rgba(250,204,21,.6),0 4px 0 #000}
+#gauge{width:230px;height:12px;background:rgba(15,23,42,.85);border:2px solid #fff;border-radius:8px;margin-top:6px;overflow:hidden}
+#gauge-fill{height:100%;width:0;background:#facc15}
+.vehicle-tag{font:900 .85rem 'Chakra Petch';color:#38bdf8;background:rgba(15,23,42,.85);padding:2px 12px;border-radius:999px;border:1px solid #38bdf8;margin-top:5px}
+#nitro-alert{font:900 1.1rem 'Chakra Petch';color:#ef4444;display:none;animation:fl .3s infinite alternate;text-shadow:0 0 12px #ef4444}
+@keyframes fl{from{transform:scale(.95);opacity:.7}to{transform:scale(1.1);opacity:1}}
+#mobile-controls{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 24px;pointer-events:none;z-index:60}
+.pad{pointer-events:auto;display:flex;gap:12px;align-items:flex-end}
+.v-btn{width:70px;height:70px;border-radius:24px;background:linear-gradient(145deg,rgba(30,41,59,.85),rgba(15,23,42,.9));border:3px solid rgba(255,255,255,.35);display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.55);font:900 1rem 'Chakra Petch';transition:transform .08s}
+.v-btn:active{transform:scale(.9);background:rgba(56,189,248,.5);border-color:#38bdf8}
+.v-btn svg{width:34px;height:34px;fill:#fff}
+#toast-msg{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);font:900 2.4rem 'Chakra Petch';font-style:italic;color:#4ade80;text-shadow:0 0 25px #22c55e,0 4px 0 #000;pointer-events:none;z-index:100;opacity:0;transition:opacity .25s;white-space:nowrap}
+#victory-modal{position:fixed;inset:0;background:rgba(10,15,29,.88);backdrop-filter:blur(14px);display:none;justify-content:center;align-items:center;padding:18px;z-index:200}
+.victory-box{background:linear-gradient(145deg,#0284c7,#0369a1 40%,#0f172a);border:5px solid #38bdf8;border-radius:34px;padding:30px;max-width:480px;width:100%;text-align:center;box-shadow:0 0 50px rgba(56,189,248,.5)}
+.btn-upgrade{width:100%;padding:14px;border-radius:20px;border:none;background:linear-gradient(180deg,#10b981,#059669);color:#fff;font:900 1.2rem 'Chakra Petch';cursor:pointer;box-shadow:0 6px 0 #047857;margin-top:18px}
+#mission-card{display:none;position:fixed;top:76px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.93);border:3px solid #facc15;border-radius:20px;padding:8px 14px 10px;text-align:center;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.mt{font:900 .8rem 'Chakra Petch';color:#facc15}
+#mission-task{font-weight:900;font-size:1.05rem;margin:2px 0 8px}
+#mission-opts{display:flex;gap:12px;justify-content:center}
+.mopt{position:relative;width:78px;height:70px;border-radius:16px;border:3px solid #38bdf8;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mopt:active{background:#bae6fd}
+.mopt span{position:absolute;top:-9px;left:-9px;background:#38bdf8;color:#fff;border-radius:50%;width:22px;height:22px;font:900 .8rem 'Chakra Petch';display:flex;align-items:center;justify-content:center}
+.lines{display:flex;flex-direction:column;gap:5px;width:46px;pointer-events:none}.lines i{display:block;height:6px;background:#0f172a;border-radius:3px}
+.mopt b{pointer-events:none}
+#mission-barwrap{height:7px;background:#334155;border-radius:4px;margin-top:9px;overflow:hidden}#mission-bar{height:100%;width:100%;background:#4ade80}
+</style>
 </head>
 <body>
+<div id="three-container"></div>
 
-  <div id="three-container"></div>
+<div id="rank-list"></div>
+<div id="mission-banner">
+  <div class="mission-badge" id="m-stage-badge">STAGE 1 / 12</div>
+  <div class="mission-target" id="m-quest-text"></div>
+</div>
+<div id="right-hud">
+  <div class="hud-pill" style="color:#fde047;border-color:#f59e0b">🪙 <span id="stat-coins">0</span></div>
+  <div class="hud-pill" id="time-val">00:00.000</div>
+  <canvas id="minimap" width="120" height="120"></canvas>
+</div>
 
-  <!-- HUD -->
-  <div id="mission-banner">
-    <div class="mission-badge" id="m-stage-badge">STAGE 1 / 12</div>
-    <div class="mission-target" id="m-quest-text">พุ่งชน: ป้ายคำตอบ</div>
+<div id="speedo-box">
+  <div class="speed-number" id="speed-val">0</div>
+  <div id="gauge"><div id="gauge-fill"></div></div>
+  <div class="vehicle-tag" id="vehicle-val">KART PRO</div>
+  <div id="nitro-alert">⚡ N2O BOOST! ⚡</div>
+</div>
+<div id="toast-msg"></div>
+<div id="mission-card"><div class="mt">⚡ ภารกิจเติม N2O</div><div id="mission-task"></div><div id="mission-opts"></div><div id="mission-barwrap"><div id="mission-bar"></div></div></div>
+
+<div id="mobile-controls">
+  <div class="pad">
+    <div class="v-btn" id="btn-left"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></div>
+    <div class="v-btn" id="btn-right"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
   </div>
-
-  <div id="stat-hud">
-    <div class="hud-pill" style="border-color:#f59e0b; color:#fde047;">
-      <span>🪙</span>
-      <span id="stat-coins">0</span>
-    </div>
+  <div class="pad">
+    <div class="v-btn" id="btn-n2o" style="border-color:#f59e0b;color:#fde047">N2O</div>
+    <div class="v-btn" id="btn-down" style="border-color:#ef4444"><svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg></div>
+    <div class="v-btn" id="btn-up" style="border-color:#10b981;width:78px;height:78px"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
   </div>
+</div>
 
-  <div id="speedo-box">
-    <div class="speed-number" id="speed-val">0</div>
-    <div class="vehicle-tag" id="vehicle-val">KART PRO</div>
-    <div class="nitro-boost-text" id="nitro-alert">⚡ NITRO DRIFT BOOST! ⚡</div>
+<div id="victory-modal">
+  <div class="victory-box">
+    <h2 style="font:900 2.1rem 'Chakra Petch';font-style:italic;color:#facc15">STAGE CLEAR!</h2>
+    <p style="color:#cbd5e1;font-size:1.1rem;margin-top:8px">ยินดีด้วย! คุณผ่านภารกิจด่านนี้เรียบร้อยแล้ว</p>
+    <div style="margin:14px 0;font:900 1.6rem 'Chakra Petch';color:#4ade80">+100 Coins 🪙</div>
+    <button class="btn-upgrade" onclick="goNext()">กลับสู่ล็อบบี้เลือกด่านต่อไป</button>
   </div>
+</div>
 
-  <div id="toast-msg">PERFECT HIT! ⚡</div>
+<script>
+const urlParams = new URLSearchParams(location.search);
+let stageId = parseInt(urlParams.get('stage')) || 1;
 
-  <!-- CONTROLS -->
-  <div id="mobile-controls">
-    <div class="pad-cluster">
-      <div class="v-btn" id="btn-left"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></div>
-      <div class="v-btn" id="btn-right"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
-    </div>
-    <div class="pad-cluster">
-      <div class="v-btn" id="btn-down" style="border-color:#ef4444;"><svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg></div>
-      <div class="v-btn" id="btn-up" style="border-color:#10b981; width:84px; height:84px;"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg></div>
-    </div>
-  </div>
+const stageDatabase = {
+  1: { name: "สปอร์ตโกคาร์ต", quest: "พุ่งชน: ป้ายชื่อเรื่องเอกสาร [Title Bar]", cards: [{ text: "Title Bar", ok: true, lane: 0 }, { text: "Status Bar", ok: false, lane: -8.5 }, { text: "Scroll Bar", ok: false, lane: 8.5 }] },
+  2: { name: "สปอร์ตโกคาร์ต", quest: "พุ่งชน: ป้ายบันทึกด่วน [Ctrl + S]", cards: [{ text: "Ctrl + S", ok: true, lane: 8.5 }, { text: "Ctrl + C", ok: false, lane: -8.5 }, { text: "Ctrl + Z", ok: false, lane: 0 }] },
+  3: { name: "สปอร์ตโกคาร์ต", quest: "พุ่งชน: ป้ายย้อนกลับคำสั่ง [Undo]", cards: [{ text: "Ctrl + Z", ok: true, lane: -8.5 }, { text: "Ctrl + Y", ok: false, lane: 0 }, { text: "Ctrl + V", ok: false, lane: 8.5 }] },
+  4: { name: "รถกระบะเทอร์โบ", quest: "พุ่งชน: ป้ายทำตัวอักษรหนา [Bold]", cards: [{ text: "Ctrl + B", ok: true, lane: 0 }, { text: "Ctrl + I", ok: false, lane: -8.5 }, { text: "Ctrl + U", ok: false, lane: 8.5 }] },
+  5: { name: "รถสปอร์ตเปิดประทุน", quest: "พุ่งชน: ป้ายจัดกึ่งกลางหน้ากระดาษ", cards: [{ text: "Ctrl + E", ok: true, lane: 8.5 }, { text: "Ctrl + L", ok: false, lane: 0 }, { text: "Ctrl + R", ok: false, lane: -8.5 }] },
+  6: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายหัวข้อย่อยไม่มีลำดับเลข", cards: [{ text: "Bullets", ok: true, lane: -8.5 }, { text: "Numbering", ok: false, lane: 0 }, { text: "Sort", ok: false, lane: 8.5 }] },
+  7: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายส่งภาพไปอยู่หลังตัวหนังสือ", cards: [{ text: "Behind Text", ok: true, lane: 0 }, { text: "In Front", ok: false, lane: -8.5 }, { text: "Square", ok: false, lane: 8.5 }] },
+  8: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายรวมช่องเซลล์ในตาราง", cards: [{ text: "Merge Cells", ok: true, lane: 8.5 }, { text: "Split Cells", ok: false, lane: 0 }, { text: "Delete", ok: false, lane: -8.5 }] },
+  9: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายวางกระดาษแนวนอน", cards: [{ text: "Landscape", ok: true, lane: -8.5 }, { text: "Portrait", ok: false, lane: 0 }, { text: "Margins", ok: false, lane: 8.5 }] },
+  10: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายเตือนเส้นหยักสีแดง", cards: [{ text: "สะกดคำผิด", ok: true, lane: 0 }, { text: "เว้นวรรคผิด", ok: false, lane: -8.5 }, { text: "ฟอนต์เพี้ยน", ok: false, lane: 8.5 }] },
+  11: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายสไตล์หัวข้อสร้างสารบัญ", cards: [{ text: "Heading 1", ok: true, lane: 8.5 }, { text: "Normal", ok: false, lane: 0 }, { text: "Title", ok: false, lane: -8.5 }] },
+  12: { name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: สกุลไฟล์ล็อกหน้ากระดาษพิมพ์", cards: [{ text: ".PDF", ok: true, lane: -8.5 }, { text: ".DOCX", ok: false, lane: 0 }, { text: ".TXT", ok: false, lane: 8.5 }] }
+};
+const cur = stageDatabase[stageId] || stageDatabase[1];
+/* ---------- 12 แมพ: ธีม สี ของข้างทาง ---------- */
+const THEMES = {
+  1:{n:"ทุ่งหญ้ายามเช้า",sky:[0x3b9cf0,0xd4f0ff],gnd:0x6ee7a0,hill:[0x86efac,0x4ade80,0x74b9e0],hs:"sphere",road:0x3b4658,curb:[0xef4444,0xffffff],wall:[0x2563eb,0xf8fafc],near:"tree",far:"house",fc:[0xfde68a,0xfca5a5,0xbfdbfe,0xbbf7d0]},
+  2:{n:"ชายหาดทรายขาว",sky:[0x22a6f2,0xc9f3ff],gnd:0xfde7a8,hill:[0x67e8f9,0x38bdf8,0x22d3ee],hs:"sphere",road:0x475569,curb:[0xfb923c,0xffffff],wall:[0x06b6d4,0xffffff],near:"palm",far:"blob",fc:[0xf9a8d4,0xfde68a,0x93c5fd]},
+  3:{n:"ทะเลทรายพีระมิด",sky:[0x3b9cf0,0xfbe3b0],gnd:0xe2b878,hill:[0xe9a96a,0xd18a52,0xc47c4a],hs:"cone",road:0x3b4658,curb:[0xef4444,0xffffff],wall:[0xc2410c,0xfde68a],near:"cactus",far:"pyr",fc:[0xd9a45b,0xe3b26a]},
+  4:{n:"เมืองยุโรปน่ารัก",sky:[0x2f86ee,0xd4f0ff],gnd:0x8fe388,hill:[0x7fd6a0,0x5cc18a,0x74b9e0],hs:"sphere",road:0x3b4658,curb:[0xef4444,0xffffff],wall:[0x2563eb,0xf8fafc],near:"tree",far:"house",fc:[0xfde68a,0xfca5a5,0xbfdbfe,0xfed7aa]},
+  5:{n:"ป่าเห็ดวิเศษ",sky:[0x7c3aed,0xfbcfe8],gnd:0x5eead4,hill:[0xc4b5fd,0xa78bfa,0xf9a8d4],hs:"sphere",road:0x4c3b6b,curb:[0xf472b6,0xffffff],wall:[0x8b5cf6,0xfdf4ff],near:"mush",far:"big",fc:[]},
+  6:{n:"ภูเขาหิมะ",sky:[0x4aa3e8,0xe8f6ff],gnd:0xf1f5f9,hill:[0xffffff,0xbae6fd,0x93c5fd],hs:"cone",road:0x475569,curb:[0x38bdf8,0xffffff],wall:[0x60a5fa,0xffffff],near:"pine",far:"pyr",fc:[0xe0f2fe,0xbae6fd]},
+  7:{n:"เมืองขนมหวาน",sky:[0xf472b6,0xfde7f3],gnd:0xfbcfe8,hill:[0xfda4af,0x99f6e4,0xfde68a],hs:"sphere",road:0x6b4a3a,curb:[0xf472b6,0xffffff],wall:[0xfb7185,0xfff1f2],near:"lolli",far:"blob",fc:[0xfda4af,0x99f6e4,0xfde68a]},
+  8:{n:"สวนสนุกคาร์นิวัล",sky:[0x6366f1,0xfde68a],gnd:0xa7f3d0,hill:[0xfb7185,0xfacc15,0x60a5fa],hs:"sphere",road:0x3b3f55,curb:[0xfacc15,0xef4444],wall:[0xef4444,0xfacc15],near:"flag",far:"tent",fc:[0xef4444,0xfacc15,0x60a5fa,0xa78bfa]},
+  9:{n:"ภูเขาไฟลาวา",sky:[0x7f1d1d,0xfb923c],gnd:0x44403c,hill:[0x57534e,0x78350f,0x7f1d1d],hs:"cone",road:0x292524,curb:[0xf97316,0x1c1917],wall:[0xea580c,0x292524],near:"lava",far:"pyr",fc:[0x57534e,0x44403c],glow:true},
+  10:{n:"เมืองนีออนยามค่ำคืน",sky:[0x0b1026,0x3b2a7a],gnd:0x1e1b4b,hill:[0x312e81,0x4c1d95,0x1e3a8a],hs:"cone",road:0x1f2937,curb:[0x22d3ee,0xec4899],wall:[0x8b5cf6,0x22d3ee],near:"neon",far:"tower",fc:[0x22d3ee,0xec4899,0xa78bfa],night:true},
+  11:{n:"เกาะลอยฟ้า",sky:[0x60a5fa,0xffffff],gnd:0xf8fafc,hill:[0xffffff,0xe0f2fe,0xfce7f3],hs:"sphere",road:0x64748b,curb:[0xfacc15,0xffffff],wall:[0xa78bfa,0xffffff],near:"tree",far:"blob",fc:[0xffffff,0xfce7f3,0xe0f2fe]},
+  12:{n:"สนามแกรนด์ปรีซ์",sky:[0x1d4ed8,0xfef3c7],gnd:0x4ade80,hill:[0xfde68a,0xfacc15,0xf59e0b],hs:"sphere",road:0x1f2937,curb:[0xfacc15,0x0f172a],wall:[0xfacc15,0x0f172a],near:"flag",far:"tower",fc:[0xfacc15,0xf59e0b]}
+};
+const TH = THEMES[stageId] || THEMES[1];
+// 4 รูปทรงสนาม (กลับซ้ายขวาด่าน 5-8, ขยาย 1.2 เท่าด่าน 9-12)
+const SHAPES = [
+  [[0,60],[0,-150],[50,-280],[170,-340],[300,-300],[340,-180],[290,-80],[190,-60],[120,20],[60,90]],
+  [[0,60],[0,-200],[60,-330],[210,-380],[350,-320],[400,-190],[350,-100],[350,-10],[400,80],[260,160],[100,130]],
+  [[0,60],[-20,-120],[40,-250],[160,-290],[250,-230],[230,-120],[300,-40],[420,-60],[460,40],[360,120],[200,100],[80,130]],
+  [[0,80],[0,-290],[100,-400],[260,-410],[370,-320],[350,-190],[250,-150],[240,-60],[330,20],[260,140],[100,140]]
+];
+const HW = 16;                         // ครึ่งความกว้างถนน
+const $ = id => document.getElementById(id);
+const gm = new THREE.DataTexture(new Uint8Array([110, 190, 255]), 3, 1, THREE.LuminanceFormat);
+gm.minFilter = gm.magFilter = THREE.NearestFilter; gm.needsUpdate = true;
+const toon = (c, o) => new THREE.MeshToonMaterial(Object.assign({ color: c, gradientMap: gm }, o));
+let sky, clouds;
+const SPH = new THREE.SphereGeometry(1, 14, 10);
+const mk = (g, geo, c, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, em) => { const m = new THREE.Mesh(geo, toon(c, em ? { emissive: em } : undefined)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
 
-  <!-- VICTORY MODAL -->
-  <div id="victory-modal">
-    <div class="victory-box">
-      <h2 style="font-family:'Chakra Petch'; font-size:2.2rem; font-style:italic; color:#facc15; margin:10px 0;">STAGE CLEAR!</h2>
-      <p style="color:#cbd5e1; font-size:1.1rem;" id="reward-text">ยินดีด้วย! คุณผ่านภารกิจด่านนี้เรียบร้อยแล้ว</p>
-      <div style="margin:16px 0; font-size:1.6rem; font-weight:900; color:#4ade80; font-family:'Chakra Petch';">+100 Coins 🪙</div>
-      <button class="btn-upgrade" onclick="goNext()">กลับสู่ล็อบบี้เลือกด่านต่อไป</button>
-    </div>
-  </div>
+let scene, camera, renderer, sun, car, camAngle = 0, frame = 0;
+let items = [], signs = [], ais = [], skids = [], parts = [];
+let coinScore = 0, isCleared = false, t0 = 0, skidI = 0, partI = 0;
+const keys = { up:false, down:false, left:false, right:false };
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let stageId = parseInt(urlParams.get('stage')) || 1;
+/* ---------- เส้นทางสนาม (โค้งปิดเป็นวงรอบ) ---------- */
+const MIR = stageId >= 5 && stageId <= 8 ? -1 : 1, SC = stageId >= 9 ? 1.2 : 1;
+const curve = new THREE.CatmullRomCurve3(
+  SHAPES[(stageId - 1) % 4].map(p => new THREE.Vector3(MIR * p[0] * SC, 0, p[1] * SC)), true, 'catmullrom', 0.5);
+const N = 600;
+const pts = curve.getSpacedPoints(N).slice(0, N);
+const SP = curve.getLength() / N;
+const tan = pts.map((p,i) => { const a = pts[(i+1)%N], b = pts[(i+N-1)%N]; return new THREE.Vector3(a.x-b.x,0,a.z-b.z).normalize(); });
+const rgt = tan.map(t => new THREE.Vector3(-t.z, 0, t.x));
+const mod = i => ((i % N) + N) % N;
+let _x0 = 1e9, _x1 = -1e9, _z0 = 1e9, _z1 = -1e9;
+pts.forEach(p => { _x0 = Math.min(_x0, p.x); _x1 = Math.max(_x1, p.x); _z0 = Math.min(_z0, p.z); _z1 = Math.max(_z1, p.z); });
+const CX = (_x0 + _x1) / 2, CZ = (_z0 + _z1) / 2; let RR = 0; pts.forEach(p => RR = Math.max(RR, Math.hypot(p.x - CX, p.z - CZ)));
 
-    const stageDatabase = {
-      1: { type: "bicycle", name: "จักรยานเสือหมอบ", quest: "พุ่งชน: ป้ายชื่อเรื่องเอกสาร [Title Bar]", cards: [{ text: "Title Bar", ok: true, lane: 0 }, { text: "Status Bar", ok: false, lane: -8.5 }, { text: "Scroll Bar", ok: false, lane: 8.5 }] },
-      2: { type: "scooter", name: "มอเตอร์ไซค์สกู๊ตเตอร์", quest: "พุ่งชน: ป้ายบันทึกด่วน [Ctrl + S]", cards: [{ text: "Ctrl + S", ok: true, lane: 8.5 }, { text: "Ctrl + C", ok: false, lane: -8.5 }, { text: "Ctrl + Z", ok: false, lane: 0 }] },
-      3: { type: "kart", name: "สปอร์ตโกคาร์ต", quest: "พุ่งชน: ป้ายย้อนกลับคำสั่ง [Undo]", cards: [{ text: "Ctrl + Z", ok: true, lane: -8.5 }, { text: "Ctrl + Y", ok: false, lane: 0 }, { text: "Ctrl + V", ok: false, lane: 8.5 }] },
-      4: { type: "kart", name: "รถกระบะเทอร์โบ", quest: "พุ่งชน: ป้ายทำตัวอักษรหนา [Bold]", cards: [{ text: "Ctrl + B", ok: true, lane: 0 }, { text: "Ctrl + I", ok: false, lane: -8.5 }, { text: "Ctrl + U", ok: false, lane: 8.5 }] },
-      5: { type: "kart", name: "รถสปอร์ตเปิดประทุน", quest: "พุ่งชน: ป้ายจัดกึ่งกลางหน้ากระดาษ", cards: [{ text: "Ctrl + E", ok: true, lane: 8.5 }, { text: "Ctrl + L", ok: false, lane: 0 }, { text: "Ctrl + R", ok: false, lane: -8.5 }] },
-      6: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายหัวข้อย่อยไม่มีลำดับเลข", cards: [{ text: "Bullets", ok: true, lane: -8.5 }, { text: "Numbering", ok: false, lane: 0 }, { text: "Sort", ok: false, lane: 8.5 }] },
-      7: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายส่งภาพไปอยู่หลังตัวหนังสือ", cards: [{ text: "Behind Text", ok: true, lane: 0 }, { text: "In Front", ok: false, lane: -8.5 }, { text: "Square", ok: false, lane: 8.5 }] },
-      8: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายรวมช่องเซลล์ในตาราง", cards: [{ text: "Merge Cells", ok: true, lane: 8.5 }, { text: "Split Cells", ok: false, lane: 0 }, { text: "Delete", ok: false, lane: -8.5 }] },
-      9: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายวางกระดาษแนวนอน", cards: [{ text: "Landscape", ok: true, lane: -8.5 }, { text: "Portrait", ok: false, lane: 0 }, { text: "Margins", ok: false, lane: 8.5 }] },
-      10: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายเตือนเส้นหยักสีแดง", cards: [{ text: "สะกดคำผิด", ok: true, lane: 0 }, { text: "เว้นวรรคผิด", ok: false, lane: -8.5 }, { text: "ฟอนต์เพี้ยน", ok: false, lane: 8.5 }] },
-      11: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: ป้ายสไตล์หัวข้อสร้างสารบัญ", cards: [{ text: "Heading 1", ok: true, lane: 8.5 }, { text: "Normal", ok: false, lane: 0 }, { text: "Title", ok: false, lane: -8.5 }] },
-      12: { type: "kart", name: "ซูเปอร์คาร์โกลด์", quest: "พุ่งชน: สกุลไฟล์ล็อกหน้ากระดาษพิมพ์", cards: [{ text: ".PDF", ok: true, lane: -8.5 }, { text: ".DOCX", ok: false, lane: 0 }, { text: ".TXT", ok: false, lane: 8.5 }] }
-    };
+const P = {
+  x: pts[0].x, z: pts[0].z, vx: 0, vz: 0, angle: Math.atan2(-tan[0].x, -tan[0].z),
+  speed: 0, idx: 0, lap: 0, boost: 0, drift: 0, hold: 0, charge: 0, gauge: 50, steer: 0,
+  baseMax: stageId === 1 ? 1.35 : (stageId <= 3 ? 1.75 : 2.25), accel: 0.045, friction: 0.015, turn: 0.046
+};
 
-    const cur = stageDatabase[stageId] || stageDatabase[1];
+function init() {
+  scene = new THREE.Scene();
+  const skyC = TH.sky[1];
+  scene.background = new THREE.Color(skyC);
+  scene.fog = new THREE.FogExp2(skyC, 0.0009);
+  camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.5, 1400);
+  renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  $("three-container").appendChild(renderer.domElement);
 
-    let scene, camera, renderer, vehicleGroup;
-    let wheelMeshes = [];
-    let coins = [], signs = [];
-    let coinScore = 0, isCleared = false;
-    let keys = { up: false, down: false, left: false, right: false };
+  scene.add(new THREE.HemisphereLight(TH.night ? 0x8da2ff : 0xffffff, TH.night ? 0x1e1b4b : 0x8b8f9c, TH.night ? .6 : .85));
+  sun = new THREE.DirectionalLight(TH.night ? 0x9bb0ff : 0xfffbeb, TH.night ? .8 : 1.15);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { near: 10, far: 400, left: -60, right: 60, top: 60, bottom: -60 });
+  scene.add(sun, sun.target);
 
-    let physics = {
-      x: 0, z: 0, angle: 0, speed: 0,
-      baseMax: stageId === 1 ? 1.35 : (stageId <= 3 ? 1.75 : 2.25),
-      accel: 0.045, friction: 0.015, turnSpeed: 0.046, boostTimer: 0
-    };
+  buildSky(); buildTrack(); buildScenery(); buildItems(); buildGate(); buildStartArch();
 
-    function init() {
-      scene = new THREE.Scene();
-      // ท้องฟ้าไล่ระดับสีแบบเกมแข่งรถ (Sky Gradient Fog)
-      scene.background = new THREE.Color(0x7dd3fc);
-      scene.fog = new THREE.FogExp2(0x7dd3fc, 0.0016);
+  car = makeKart(stageId > 5 ? 0xfacc15 : (stageId >= 3 ? 0xef4444 : 0xf8fafc), 0xdc2626, true);
+  scene.add(car);
+  [[50,-6,0x8b5cf6,0x1e1b4b,0,"Rider"],[32,6,0x10b981,0x065f46,1,"Dino"],[16,-9,0xf97316,0x7c2d12,0,"Bolt"],
+   [-16,8,0xec4899,0x831843,1,"Luna"],[-32,-4,0x06b6d4,0x164e63,0,"Neo"]].forEach(([s,l,b,h,e,name],i) => {
+    const k = makeKart(b, h, !!e); scene.add(k);
+    ais.push({ k, s, lane: l, sp: P.baseMax * (0.8 + i * 0.035), name });
+  });
 
-      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1400);
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      document.getElementById("three-container").appendChild(renderer.domElement);
+  // รอยดริฟต์ + ควัน
+  const sg = new THREE.PlaneGeometry(0.6, 2.2), sm = new THREE.MeshBasicMaterial({ color: 0x0b0f1a, transparent: true, opacity: 0.55 });
+  for (let i = 0; i < 160; i++) { const m = new THREE.Mesh(sg, sm); m.rotation.order = 'YXZ'; m.rotation.x = -Math.PI/2; m.visible = false; scene.add(m); skids.push(m); }
+  const pg = new THREE.SphereGeometry(0.5, 6, 6);
+  for (let i = 0; i < 30; i++) { const m = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })); m.visible = false; scene.add(m); parts.push({ m, l: 0, vy: 0 }); }
 
-      // ระบบแสงนุ่มนวลแบบการ์ตูน (Cartoon Shading Lights)
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x475569, 0.85);
-      scene.add(hemi);
-      
-      const sun = new THREE.DirectionalLight(0xfffbeb, 1.2);
-      sun.position.set(70, 140, 70);
-      sun.castShadow = true;
-      sun.shadow.mapSize.width = 2048;
-      sun.shadow.mapSize.height = 2048;
-      sun.shadow.camera.near = 10;
-      sun.shadow.camera.far = 400;
-      const d = 60;
-      sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
-      sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
-      scene.add(sun);
+  $("m-stage-badge").innerText = `STAGE ${stageId} / 12 · ${TH.n}`;
+  $("m-quest-text").innerText = cur.quest;
+  $("vehicle-val").innerText = cur.name;
+  setupInputs();
+  addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  t0 = performance.now();
+  showToast("GO! 🏁", "#facc15");
+  animate();
+}
 
-      buildProCircuitTrack();
-      buildCustomVehicle(cur.type);
-      buildItems();
-      setupInputs();
-
-      document.getElementById("m-stage-badge").innerText = `STAGE ${stageId} / 12`;
-      document.getElementById("m-quest-text").innerText = cur.quest;
-      document.getElementById("vehicle-val").innerText = cur.name;
-
-      animate();
+/* ---------- สนาม: ถนนโค้ง + ขอบแดงขาว + กำแพงกั้น ---------- */
+function strip(a, ya, b, yb, col) {
+  const pos = [], cl = [];
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N, c = new THREE.Color(col(i));
+    [[i,a,ya],[j,a,ya],[i,b,yb],[j,a,ya],[j,b,yb],[i,b,yb]].forEach(([k,o,y]) => {
+      pos.push(pts[k].x + rgt[k].x * o, y, pts[k].z + rgt[k].z * o); cl.push(c.r, c.g, c.b);
+    });
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3));
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+  m.receiveShadow = true; scene.add(m);
+}
+function buildTrack() {
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshLambertMaterial({ color: TH.gnd }));
+  ground.rotation.x = -Math.PI/2; ground.position.set(CX, 0, CZ); ground.receiveShadow = true; scene.add(ground);
+  strip(-HW, .2, HW, .2, () => TH.road);
+  strip(-.25, .35, .25, .35, i => (i % 8 < 4) ? 0xffffff : TH.road);
+  const curb = i => TH.curb[(i >> 2) % 2], wall = i => TH.wall[(i >> 3) % 2];
+  strip(HW, .4, HW + 3, .4, curb); strip(-HW - 3, .4, -HW, .4, curb);
+  strip(HW + 3, .4, HW + 3, 3.2, wall); strip(-HW - 3, .4, -HW - 3, 3.2, wall);
+  const line = new THREE.Mesh(new THREE.BoxGeometry(HW * 2, .1, 3), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  line.position.set(pts[0].x, .4, pts[0].z); line.rotation.y = Math.atan2(-rgt[0].z, rgt[0].x); scene.add(line);
+}
+function buildSky() {
+  sky = new THREE.Mesh(new THREE.SphereGeometry(1200, 24, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
+    uniforms: { t: { value: new THREE.Color(TH.sky[0]) }, h: { value: new THREE.Color(TH.sky[1]) } },
+    vertexShader: 'varying float y;void main(){y=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: 'uniform vec3 t,h;varying float y;void main(){gl_FragColor=vec4(mix(h,t,pow(clamp(y,0.,1.),.55)),1.);}'
+  }));
+  sky.renderOrder = -1; scene.add(sky);
+  if (TH.night) {
+    const sp = []; for (let i = 0; i < 280; i++) { const a = Math.random() * 6.283, e = .1 + Math.random() * 1.2, r = 1100; sp.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+    sky.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 2.5, sizeAttenuation: false, fog: false })));
+  }
+  clouds = new THREE.Group();
+  const cm = toon(TH.night ? 0x7c8ad6 : 0xffffff, { emissive: TH.night ? 0x2a3466 : 0x9fb6d6, fog: false });
+  for (let i = 0; i < 36; i++) {
+    const c = new THREE.Group(), n = 4 + Math.floor(Math.random() * 3), sz = 14 + Math.random() * 14;
+    for (let k = 0; k < n; k++) {
+      const m = new THREE.Mesh(SPH, cm), r = sz * (.55 + Math.random() * .45);
+      m.scale.set(r, r * .75, r * .8); m.position.set((k - n / 2) * sz * .9, (k % 2) * sz * .25, Math.random() * 4); c.add(m);
     }
+    const an = Math.random() * 6.283, d = 250 + Math.random() * 650;
+    c.position.set(Math.cos(an) * d, 55 + Math.random() * 65, Math.sin(an) * d); c.rotation.y = Math.random() * 3; clouds.add(c);
+  }
+  scene.add(clouds);
+  for (let i = 0; i < 40; i++) {
+    const an = i / 40 * 6.283, d = RR + 420 + Math.random() * 120, h = 60 + Math.random() * 90, r = 70 + Math.random() * 50;
+    const m = new THREE.Mesh(TH.hs === "cone" ? new THREE.ConeGeometry(r, h, 5) : SPH, toon(TH.hill[i % 3]));
+    if (TH.hs !== "cone") m.scale.set(r + 20, (r + 20) * .7, r + 20);
+    m.position.set(CX + Math.cos(an) * d, TH.hs === "cone" ? h / 2 : 0, CZ + Math.sin(an) * d); scene.add(m);
+  }
+}
+function buildStartArch() {
+  const g = new THREE.Group(), cv = document.createElement("canvas"); cv.width = 512; cv.height = 128;
+  const x = cv.getContext("2d");
+  for (let i = 0; i < 16; i++) for (let j = 0; j < 4; j++) { x.fillStyle = (i + j) % 2 ? "#0f172a" : "#fff"; x.fillRect(i * 32, j * 32, 32, 32); }
+  x.fillStyle = "#1e3a8a"; x.fillRect(90, 14, 332, 100); x.fillStyle = "#facc15"; x.font = "900 76px Kanit,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("START", 256, 66);
+  const ban = new THREE.Mesh(new THREE.PlaneGeometry(HW * 2 + 4, 5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), side: THREE.DoubleSide }));
+  ban.position.y = 11; g.add(ban);
+  [-1, 1].forEach(s => { const p = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1, 12, 12), toon(s > 0 ? 0xef4444 : 0x3b82f6)); p.position.set(s * (HW + 2), 6, 0); p.castShadow = true; g.add(p); });
+  g.position.set(pts[10].x, 0, pts[10].z); g.rotation.y = Math.atan2(-rgt[10].z, rgt[10].x); scene.add(g);
+}
 
-    /* 1. สนามแข่งระดับมืออาชีพสไตล์ KartRider (มีภูเขา, ขอบสนาม, ป้ายโฮโลแกรม) */
-    function buildProCircuitTrack() {
-      // พื้นหญ้าสีเขียวธรรมชาติ
-      const grassGeo = new THREE.PlaneGeometry(800, 2200);
-      const grassMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
-      const grass = new THREE.Mesh(grassGeo, grassMat);
-      grass.rotation.x = -Math.PI / 2;
-      grass.position.z = -700;
-      grass.receiveShadow = true;
-      scene.add(grass);
+/* ---------- ฉากข้างทาง ตามธีมของแต่ละแมพ ---------- */
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+function nearProp(t) {
+  const g = new THREE.Group(), r = Math.random(), C = THREE.CylinderGeometry, K = THREE.ConeGeometry;
+  if (t === "tree") { const c = r < .25 ? 0xf9a8d4 : rnd([0x4ade80, 0x34d399, 0xa3e635]); mk(g, new C(.6, .8, 3, 8), 0x92400e, 0, 1.5, 0); mk(g, SPH, c, 0, 5, 0, 3.4, 3.1, 3.4); mk(g, SPH, c, 0, 8, 0, 2.3, 2.1, 2.3); }
+  else if (t === "palm") {
+    const tr = mk(g, new C(.4, .6, 7, 8), 0xb45309, 0, 3.5, 0); tr.rotation.z = .12;
+    for (let k = 0; k < 5; k++) { const an = k * 1.2566, l = mk(g, SPH, 0x22c55e, Math.cos(an) * 2.2, 7.2, Math.sin(an) * 2.2, 2.6, .3, .9); l.rotation.y = -an; }
+    mk(g, SPH, 0x78350f, .5, 6.6, .4, .5, .5, .5);
+  }
+  else if (t === "cactus") { mk(g, new C(.9, .9, 6, 10), 0x4ade80, 0, 3, 0); mk(g, SPH, 0x4ade80, 0, 6, 0, .9, .9, .9); mk(g, new C(.5, .5, 2.2, 8), 0x4ade80, 1.5, 3.6, 0); mk(g, SPH, 0xf472b6, 0, 7, 0, .5, .5, .5); }
+  else if (t === "mush") {
+    mk(g, new C(.9, 1.1, 3, 10), 0xfef3c7, 0, 1.5, 0); const c = rnd([0xef4444, 0xf472b6, 0xa78bfa]);
+    mk(g, SPH, c, 0, 3.6, 0, 3.3, 2, 3.3); [[-1.2, 5.2, .6], [1.1, 5.3, -.5], [0, 5.6, 1.2]].forEach(p => mk(g, SPH, 0xffffff, p[0], p[1], p[2], .55, .3, .55));
+  }
+  else if (t === "pine") { mk(g, new C(.5, .7, 2, 8), 0x78350f, 0, 1, 0); [[3.6, 3.6, 3.5], [2.8, 3.4, 5.6], [2, 3.2, 7.5]].forEach(p => mk(g, new K(p[0], p[1], 8), 0x15803d, 0, p[2], 0)); mk(g, SPH, 0xffffff, 0, 9.1, 0, .8, .8, .8); }
+  else if (t === "lolli") { mk(g, new C(.25, .25, 7, 6), 0xffffff, 0, 3.5, 0); const c = rnd([0xf472b6, 0x5eead4, 0xfacc15, 0xa78bfa]); mk(g, SPH, c, 0, 8, 0, 2.5, 2.5, .8); mk(g, SPH, 0xffffff, 0, 8, .5, 1.3, 1.3, .5); }
+  else if (t === "neon") { const c = rnd([0x22d3ee, 0xec4899, 0xa78bfa]), h = 10 + r * 12; mk(g, new THREE.BoxGeometry(2.4, h, 2.4), c, 0, h / 2, 0, 1, 1, 1, c); mk(g, SPH, 0xffffff, 0, h + 1, 0, 1.2, 1.2, 1.2, 0xffffff); }
+  else if (t === "lava") { mk(g, THREE.DodecahedronGeometry ? new THREE.DodecahedronGeometry(2.5, 0) : SPH, 0x44403c, 0, 2, 0, 1, 1.3, 1); mk(g, new K(1.2, 2.6, 6), 0xf97316, 0, 4.6, 0, 1, 1, 1, 0xf97316); }
+  else if (t === "flag") { mk(g, new C(.15, .15, 9, 6), 0xe5e7eb, 0, 4.5, 0); mk(g, new THREE.BoxGeometry(3, 1.8, .1), rnd([0xef4444, 0xfacc15, 0x60a5fa]), 1.6, 8.2, 0); }
+  return g;
+}
+function farProp(t, fc) {
+  const g = new THREE.Group(), r = Math.random(), C = THREE.CylinderGeometry, K = THREE.ConeGeometry;
+  if (t === "house") {
+    const h = 10 + r * 10; mk(g, new THREE.BoxGeometry(12, h, 12), rnd(fc), 0, h / 2, 0);
+    const rf = mk(g, new K(10, 6, 4), 0xdc2626, 0, h + 3, 0); rf.rotation.y = Math.PI / 4; mk(g, new THREE.BoxGeometry(2.4, 3.6, .3), 0x7c3f12, 0, 1.8, 6.1);
+  }
+  else if (t === "pyr") { const p = mk(g, new K(12 + r * 8, 24, 4), rnd(fc), 0, 12, 0); p.rotation.y = Math.PI / 4; if (TH.glow) mk(g, new K(3, 5, 6), 0xf97316, 0, 24, 0, 1, 1, 1, 0xf97316); }
+  else if (t === "blob") { const c = rnd(fc); mk(g, SPH, c, 0, 4, 0, 9 + r * 6, 7 + r * 4, 9 + r * 6); mk(g, SPH, 0xffffff, 0, 10, 0, 4, 2, 4); }
+  else if (t === "tower") { const c = rnd(fc), h = 25 + r * 25; mk(g, new THREE.BoxGeometry(7, h, 7), c, 0, h / 2, 0, 1, 1, 1, TH.night ? c : undefined); mk(g, SPH, 0xffffff, 0, h + 2, 0, 2, 2, 2, TH.night ? 0xffffff : undefined); }
+  else if (t === "tent") { mk(g, new C(11, 11, 6, 10), 0xffffff, 0, 3, 0); mk(g, new K(12, 12, 10), rnd(fc), 0, 12, 0); mk(g, new C(.15, .15, 5, 6), 0xe5e7eb, 0, 20, 0); }
+  else if (t === "big") { const n = nearProp(TH.near); n.scale.setScalar(3.2); return n; }
+  return g;
+}
+function buildScenery() {
+  const at = (i, off) => [pts[i].x + rgt[i].x * off, pts[i].z + rgt[i].z * off];
+  for (let i = 0; i < N; i += 13) for (const sd of [-1, 1]) {
+    const [x, z] = at(i, sd * (45 + Math.random() * 30));
+    let ok = true;
+    for (let k = 0; k < N; k += 6) if ((pts[k].x - x) ** 2 + (pts[k].z - z) ** 2 < 52 * 52) { ok = false; break; }
+    if (!ok) continue;
+    const g = farProp(TH.far, TH.fc); g.position.set(x, 0, z); scene.add(g);
+  }
+  for (let i = 4; i < N; i += 11) for (const sd of [-1, 1]) {
+    if (Math.random() < .4) continue;
+    const [x, z] = at(i, sd * (27 + Math.random() * 8)), g = nearProp(TH.near); g.position.set(x, 0, z); scene.add(g);
+  }
+  for (let i = 20; i < N; i += 85) {
+    const [x, z] = at(i, (Math.random() < .5 ? -1 : 1) * (70 + Math.random() * 60)), g = new THREE.Group();
+    mk(g, SPH, [0xf87171, 0xfacc15, 0x60a5fa, 0xc084fc][i % 4], 0, 0, 0, 5, 6, 5); mk(g, new THREE.BoxGeometry(2.2, 1.6, 2.2), 0x92400e, 0, -8, 0);
+    g.position.set(x, 38 + Math.random() * 20, z); scene.add(g);
+  }
+}
 
-      // ถนนแข่งแบบแอสฟัลต์พรีเมียม กว้าง 36 เมตร
-      const roadGeo = new THREE.PlaneGeometry(36, 2000);
-      const roadMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-      const road = new THREE.Mesh(roadGeo, roadMat);
-      road.rotation.x = -Math.PI / 2;
-      road.position.set(0, 0.05, -700);
-      road.receiveShadow = true;
-      scene.add(road);
+/* ---------- รถ + คนขับหัวโต สไตล์ KartRider (ตัวถังมนๆ น่ารัก) ---------- */
+function makeKart(body, hat, ears) {
+  const g = new THREE.Group(), S = new THREE.SphereGeometry(1, 16, 12);
+  const add = (geo, c, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, toon(c)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
+  add(S, body, 0, .85, 0, 1.75, .65, 2.2);            // ตัวถังมนๆ
+  add(S, body, 0, .7, -2.3, 1.45, .45, .95);          // จมูกรถ
+  add(S, 0xffffff, 0, .75, -3.1, .95, .3, .35);       // กันชนหน้าขาว
+  add(S, body, 0, 1.25, 1.9, 1.2, .55, 1);            // ท้ายรถ
+  add(new THREE.BoxGeometry(3.7, .22, .9), 0x1e293b, 0, 2, 2.6);
+  [-1.7, 1.7].forEach(x => add(new THREE.BoxGeometry(.2, .8, 1), body, x, 1.7, 2.6));
+  add(S, 0x3b82f6, 0, 1.95, .5, .85, .8, .7);         // ตัวคนขับ
+  add(S, hat, 0, 3.35, .4, 1.4, 1.4, 1.4);            // หัวโต
+  if (ears) [-1, 1].forEach(s => add(S, hat, s * 1.05, 4.45, .4, .5, .5, .35));
+  else add(S, 0xffffff, 0, 4.8, .4, .32, .32, .32);   // ปอมปอมบนหมวก
+  [-1, 1].forEach(s => add(S, 0xfde68a, s * .95, 2, -.3, .3, .3, .3)); // มือจับพวงมาลัย
+  g.userData.wheels = []; g.userData.front = [];
+  [[-1.95, -1.7, 1], [1.95, -1.7, 1], [-1.95, 1.7, 0], [1.95, 1.7, 0]].forEach(([x, z, f]) => {
+    const wg = new THREE.Group(), sp = new THREE.Group(); wg.add(sp);
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.72, .72, .8, 16), toon(0x1e293b)); t.rotation.z = Math.PI / 2; t.castShadow = true;
+    const r = new THREE.Mesh(new THREE.CylinderGeometry(.4, .4, .84, 10), toon(0xffffff)); r.rotation.z = Math.PI / 2;
+    sp.add(t, r); wg.position.set(x, .7, z); g.add(wg);
+    g.userData.wheels.push(sp); if (f) g.userData.front.push(wg);
+  });
+  g.userData.flame = [-.8, .8].map(x => {
+    const f = new THREE.Mesh(new THREE.ConeGeometry(.45, 2.6, 8), new THREE.MeshBasicMaterial({ color: 0xfb923c }));
+    f.rotation.x = Math.PI / 2; f.position.set(x, 1.2, 4.2); f.visible = false; g.add(f); return f;
+  });
+  return g;
+}
 
-      // ขอบทางโค้งสนามแข่งแบบมืออาชีพ (Racing Curbs แถบแดง-ขาว ทรงนูน 3D)
-      for (let z = 60; z > -1600; z -= 10) {
-        const curbColor = (Math.abs(Math.floor(z / 10)) % 2 === 0) ? 0xef4444 : 0xffffff;
-        const curbMat = new THREE.MeshLambertMaterial({ color: curbColor });
-        const curbGeo = new THREE.BoxGeometry(2.0, 0.35, 10);
+/* ---------- ไอเทมบ็อกซ์ "?" + ป้ายคำตอบ ---------- */
+const GI = Math.floor(N * 0.44);
+function buildItems() {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.strokeStyle = "#92400e"; x.lineWidth = 6; x.font = "900 54px Kanit,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.strokeText("?", 32, 34); x.fillText("?", 32, 34);
+  const tex = new THREE.CanvasTexture(c);
+  for (let i = 25; i < N - 10; i += 24) {
+    if (Math.abs(i - GI) < 20) continue;
+    const lane = [-9, 0, 9][Math.floor(Math.random() * 3)], px = pts[i].x + rgt[i].x * lane, pz = pts[i].z + rgt[i].z * lane;
+    const m = new THREE.Mesh(new THREE.ConeGeometry(2, 2.6, 3), toon(0xfacc15));
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex })); sp.scale.set(2.2, 2.2, 1); sp.position.y = 2.6; m.add(sp);
+    m.position.set(px, 2, pz); m.castShadow = true; scene.add(m);
+    items.push({ m, x: px, z: pz, hit: false });
+  }
+}
+function createSign(text, ok) {
+  const group = new THREE.Group(), cv = document.createElement("canvas"); cv.width = 512; cv.height = 256;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = ok ? "#059669" : "#dc2626"; ctx.beginPath(); (ctx.roundRect || ctx.rect).call(ctx, 10, 10, 492, 236, 30); ctx.fill();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = "900 64px Kanit,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, 256, 128);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 3.6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), side: THREE.DoubleSide }));
+  board.position.y = 2.4; group.add(board);
+  const pm = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+  [-3, 3].forEach(px => { const p = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, 2.5), pm); p.position.set(px, 1.25, 0); group.add(p); });
+  return group;
+}
+function buildGate() {
+  cur.cards.forEach(c => {
+    const g = createSign(c.text, c.ok), x = pts[GI].x + rgt[GI].x * c.lane, z = pts[GI].z + rgt[GI].z * c.lane;
+    g.position.set(x, .2, z); g.lookAt(x - tan[GI].x, .2, z - tan[GI].z); scene.add(g);
+    signs.push({ g, x, z, ok: c.ok, hit: false });
+  });
+}
 
-        const leftCurb = new THREE.Mesh(curbGeo, curbMat);
-        leftCurb.position.set(-19.0, 0.18, z);
-        scene.add(leftCurb);
+/* ---------- ควบคุม ---------- */
+function useN2O() {
+  if (P.gauge < 50) { showToast("N2O ยังไม่พอ! ดริฟต์เพื่อเติมหลอด", "#f59e0b"); return; }
+  if (P.boost < 10) { P.gauge -= 50; P.boost = 80; showToast("N2O BOOST! ⚡", "#38bdf8"); }
+}
+function setupInputs() {
+  // ใช้ e.code เพื่อให้ทำงานแม้เปิดคีย์บอร์ดภาษาไทย
+  const map = { ArrowUp:"up", KeyW:"up", ArrowLeft:"left", KeyA:"left", ArrowRight:"right", KeyD:"right" };
+  const n2o = ["KeyS","ArrowDown","Space","ShiftLeft","ShiftRight"];
+  addEventListener("keydown", e => {
+    if (map[e.code]) { keys[map[e.code]] = true; e.preventDefault(); }
+    const dm = /^(Digit|Numpad)([1-3])$/.exec(e.code); if (dm) answerMission(+dm[2] - 1);
+    if (n2o.includes(e.code)) { e.preventDefault(); if (!e.repeat) useN2O(); }
+  });
+  addEventListener("keyup", e => { if (map[e.code]) keys[map[e.code]] = false; });
+  addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+  addEventListener("pointerdown", () => window.focus());
+  const bind = (id, on, off) => {
+    const el = $(id);
+    ["touchstart","mousedown"].forEach(ev => el.addEventListener(ev, e => { e.preventDefault(); on(); }));
+    ["touchend","touchcancel","mouseup","mouseleave"].forEach(ev => el.addEventListener(ev, off));
+  };
+  [["btn-up","up"],["btn-down","down"],["btn-left","left"],["btn-right","right"]].forEach(([id, a]) => bind(id, () => keys[a] = true, () => keys[a] = false));
+  bind("btn-n2o", useN2O, () => {});
+}
+function showToast(text, color) {
+  const t = $("toast-msg"); t.innerText = text; t.style.color = color; t.style.opacity = "1";
+  clearTimeout(showToast.h); showToast.h = setTimeout(() => t.style.opacity = "0", 800);
+}
+function puff(x, z, col) {
+  const p = parts[partI++ % parts.length]; p.m.position.set(x, .8, z); p.m.material.color.set(col); p.l = 26; p.vy = .04 + Math.random() * .04; p.m.visible = true;
+}
 
-        const rightCurb = new THREE.Mesh(curbGeo, curbMat);
-        rightCurb.position.set(19.0, 0.18, z);
-        scene.add(rightCurb);
-      }
+/* ---------- ลูปเกมหลัก ---------- */
+function update() {
+  if (isCleared) return;
+  frame++;
+  let max = P.baseMax;
+  if (P.boost > 0) { P.boost--; max *= 1.48; P.speed = Math.min(max, P.speed + .08); }
+  $("nitro-alert").style.display = P.boost > 0 ? "block" : "none";
 
-      // เส้นประแบ่งเลนสะท้อนแสงสีขาว
-      for (let z = 60; z > -1600; z -= 16) {
-        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const lineGeo = new THREE.PlaneGeometry(0.45, 7);
+  if (keys.up) P.speed += P.accel;
+  else if (keys.down) P.speed -= P.accel * 1.5;
+  else { P.speed = P.speed > 0 ? Math.max(0, P.speed - P.friction) : Math.min(0, P.speed + P.friction); }
+  P.speed = Math.max(-0.35, Math.min(P.speed, max));
+  const sgn = P.speed >= 0 ? 1 : -1, turnIn = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
 
-        const l1 = new THREE.Mesh(lineGeo, lineMat);
-        l1.rotation.x = -Math.PI / 2;
-        l1.position.set(-6, 0.08, z);
-        scene.add(l1);
+  // ดริฟต์: กดเลี้ยวค้างตอนความเร็วสูง -> ท้ายปัด, ปล่อยแล้วได้บูสต์
+  if (!P.drift) {
+    if (turnIn && P.speed > P.baseMax * .7) { if (++P.hold > 10) { P.drift = turnIn; P.charge = 0; showToast("DRIFT!", "#facc15"); } } else P.hold = 0;
+  } else if (!turnIn || P.speed < P.baseMax * .5) {
+    if (P.charge > 35) { P.boost = Math.min(110, 40 + P.charge * .6); showToast("DRIFT BOOST! ⚡", "#38bdf8"); }
+    P.drift = 0; P.charge = 0; P.hold = 0;
+  } else { P.charge++; P.gauge = Math.min(100, P.gauge + .6); }
 
-        const l2 = l1.clone();
-        l2.position.x = 6;
-        scene.add(l2);
-      }
+  if (P.speed !== 0) P.angle += P.turn * (P.drift ? (turnIn === P.drift ? 1.35 : .6) : 1) * turnIn * sgn;
+  const fx = -Math.sin(P.angle), fz = -Math.cos(P.angle), grip = P.drift ? .07 : .22;
+  P.vx += (fx * P.speed - P.vx) * grip; P.vz += (fz * P.speed - P.vz) * grip;
+  P.x += P.vx; P.z += P.vz;
 
-      // ฉากภูเขาและตึก Low-Poly ด้านหลังสนาม (Scenery)
-      for (let z = 0; z > -1600; z -= 120) {
-        buildSceneryCluster(-45, z);
-        buildSceneryCluster(45, z);
-      }
+  // หาตำแหน่งบนสนาม + ชนกำแพง
+  let best = P.idx, bd = 1e9;
+  for (let k = -14; k <= 14; k++) { const i = mod(P.idx + k), dx = P.x - pts[i].x, dz = P.z - pts[i].z, d = dx*dx + dz*dz; if (d < bd) { bd = d; best = i; } }
+  if (P.idx > N * .75 && best < N * .25) P.lap++; else if (P.idx < N * .25 && best > N * .75) P.lap--;
+  P.idx = best;
+  const off = (P.x - pts[best].x) * rgt[best].x + (P.z - pts[best].z) * rgt[best].z, lim = HW + 1.3;
+  if (Math.abs(off) > lim) {
+    const s = Math.sign(off), push = off - s * lim;
+    P.x -= rgt[best].x * push; P.z -= rgt[best].z * push; P.speed *= .94; P.vx *= .94; P.vz *= .94;
+    if (frame % 3 === 0) puff(P.x + rgt[best].x * s * 2, P.z + rgt[best].z * s * 2, 0xfde047);
+  }
+
+  // เก็บไอเทมบ็อกซ์
+  items.forEach(it => {
+    if (!it.hit && Math.hypot(P.x - it.x, P.z - it.z) < 3.2) {
+      it.hit = true; scene.remove(it.m); coinScore += 10; $("stat-coins").innerText = coinScore; startMission();
     }
-
-    function buildSceneryCluster(x, z) {
-      // ภูเขา Low-Poly สวยงามด้านหลัง
-      const mtnGeo = new THREE.ConeGeometry(24, 38, 5);
-      const mtnMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8, flatShading: true });
-      const mtn = new THREE.Mesh(mtnGeo, mtnMat);
-      mtn.position.set(x * 1.8, 18, z);
-      scene.add(mtn);
-
-      // ต้นไม้สไตล์การ์ตูนข้างสนาม
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, 5), new THREE.MeshLambertMaterial({ color: 0x78350f }));
-      trunk.position.set(x, 2.5, z + 20);
-      scene.add(trunk);
-
-      const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(3.6, 1), new THREE.MeshLambertMaterial({ color: 0x22c55e, flatShading: true }));
-      leaves.position.set(x, 6.5, z + 20);
-      scene.add(leaves);
+  });
+  // พุ่งชนป้ายคำตอบ
+  signs.forEach(s => {
+    if (!s.hit && Math.hypot(P.x - s.x, P.z - s.z) < 4.2) {
+      s.hit = true; scene.remove(s.g);
+      if (s.ok) { P.boost = 85; showToast("PERFECT HIT! ⚡", "#4ade80"); setTimeout(completeStage, 950); }
+      else { showToast("WRONG TARGET! 💥", "#ef4444"); P.speed *= .35; P.vx *= .35; P.vz *= .35; }
     }
+  });
 
-    /* 2. โมเดลรถ KART PRO / BIKE สไตล์ KARTRIDER เต็มรูปแบบ */
-    function buildCustomVehicle(type) {
-      vehicleGroup = new THREE.Group();
-      wheelMeshes = [];
+  // รถผู้เล่น
+  P.steer += (turnIn - P.steer) * .25;
+  car.position.set(P.x, .2, P.z); car.rotation.y = P.angle; car.rotation.z = turnIn * .07;
+  car.userData.wheels.forEach(w => w.rotation.x -= P.speed * 1.5);
+  car.userData.front.forEach(w => w.rotation.y = P.steer * .45);
+  car.userData.flame.forEach(f => { f.visible = P.boost > 0; f.scale.set(1, .8 + Math.random() * .6, 1); });
+  const co = Math.cos(P.angle), si = Math.sin(P.angle);
+  if (P.drift || P.boost > 0) [-1.9, 1.9].forEach(lx => {
+    const wx = P.x + lx * co + 1.7 * si, wz = P.z - lx * si + 1.7 * co;
+    if (P.drift && frame % 2 === 0) { const m = skids[skidI++ % skids.length]; m.position.set(wx, .3, wz); m.rotation.y = P.angle; m.visible = true; }
+    if (frame % 3 === 0) puff(wx, wz, P.boost > 0 ? 0x7dd3fc : 0xe5e7eb);
+  });
+  parts.forEach(p => { if (p.l > 0) { p.l--; p.m.position.y += p.vy; p.m.scale.setScalar(1 + (26 - p.l) * .09); p.m.material.opacity = p.l / 26 * .55; if (!p.l) p.m.visible = false; } });
 
-      if (type === "bicycle") {
-        // โมเดลจักรยานแข่งเสือหมอบ (Bicycle Pro)
-        const frameMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
-        const metalMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
-        const wheelMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+  // คู่แข่ง AI วิ่งตามเส้นทาง
+  ais.forEach((a, i) => {
+    a.s += a.sp / SP; const k = Math.floor(a.s), f = a.s - k, A = pts[mod(k)], B = pts[mod(k + 1)], R = rgt[mod(k)], T = tan[mod(k)];
+    const ln = a.lane + Math.sin(frame * .02 + i * 2) * 2;
+    a.k.position.set(A.x + (B.x - A.x) * f + R.x * ln, .2, A.z + (B.z - A.z) * f + R.z * ln);
+    a.k.rotation.y = Math.atan2(-T.x, -T.z);
+    a.k.userData.wheels.forEach(w => w.rotation.x -= a.sp * 1.5);
+  });
 
-        // โครงตัวถังจักรยาน
-        const mainBar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.2), frameMat);
-        mainBar.rotation.x = Math.PI / 2.2;
-        mainBar.position.set(0, 1.4, -0.2);
-        vehicleGroup.add(mainBar);
+  // กล้องไล่ตามท้ายรถ (หน่วงมุมนิดหน่อยให้เห็นท้ายปัดตอนดริฟต์)
+  camAngle += (P.angle - camAngle) * .12;
+  const cs = Math.sin(camAngle), cc = Math.cos(camAngle), shake = P.boost > 0 ? (Math.random() - .5) * .25 : 0;
+  camera.position.set(P.x + cs * 11.5 + shake, 4.8 + (P.boost > 0 ? .6 : 0), P.z + cc * 11.5);
+  camera.lookAt(P.x - cs * 9, 1.6, P.z - cc * 9);
+  camera.fov += (65 + Math.abs(P.speed) / P.baseMax * 6 + (P.boost > 0 ? 12 : 0) - camera.fov) * .1; camera.updateProjectionMatrix();
+  sun.position.set(P.x + 70, 140, P.z + 70); sun.target.position.set(P.x, 0, P.z);
+  sky.position.copy(camera.position); clouds.position.set(P.x * .85, 0, P.z * .85); clouds.rotation.y += .0004;
 
-        const seatPost = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.6), frameMat);
-        seatPost.position.set(0, 1.5, 0.5);
-        vehicleGroup.add(seatPost);
+  tickMission();
+  // HUD
+  $("speed-val").innerText = Math.round(Math.hypot(P.vx, P.vz) * 68);
+  const gf = $("gauge-fill"); gf.style.width = P.gauge + "%"; gf.style.background = P.gauge >= 50 ? "#38bdf8" : "#facc15";
+  const ms = performance.now() - t0; $("time-val").innerText = String(Math.floor(ms / 60000)).padStart(2, "0") + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0") + "." + String(Math.floor(ms % 1000)).padStart(3, "0");
+  if (frame % 6 === 0) drawRank();
+  if (frame % 3 === 0) drawMap();
+}
+/* ---------- ภารกิจจากกล่อง "?" : ตอบถูกได้ N2O +50% ---------- */
+const MISS = [
+  { t: 'จัดข้อความ "ชิดซ้าย"', k: "left", type: "align" }, { t: 'จัดข้อความ "กึ่งกลาง"', k: "center", type: "align" },
+  { t: 'จัดข้อความ "ชิดขวา"', k: "right", type: "align" }, { t: 'จัดข้อความ "เต็มสองด้าน"', k: "justify", type: "align" },
+  { t: 'ทำตัวอักษร "หนา" (Bold)', k: "bold", type: "style" }, { t: 'ทำตัวอักษร "เอียง" (Italic)', k: "italic", type: "style" },
+  { t: 'ทำตัวอักษร "ขีดเส้นใต้" (Underline)', k: "underline", type: "style" }
+];
+const POOL = { align: ["left", "center", "right", "justify"], style: ["bold", "italic", "underline"] };
+let mission = null;
+function icon(k, type) {
+  if (type === "style") return `<b style="font:${k === "bold" ? 900 : 500} 2rem Kanit;${k === "italic" ? "font-style:italic;" : ""}${k === "underline" ? "text-decoration:underline;" : ""}">A</b>`;
+  const al = { left: "flex-start", center: "center", right: "flex-end", justify: "stretch" }[k], w = k === "justify" ? [100, 100, 100] : [100, 55, 78];
+  return `<div class="lines" style="align-items:${al}">${w.map(x => `<i style="width:${x}%"></i>`).join("")}</div>`;
+}
+function startMission() {
+  if (mission) return;
+  const m = rnd(MISS), others = POOL[m.type].filter(k => k !== m.k).sort(() => Math.random() - .5).slice(0, 2);
+  mission = { m, opts: [m.k, ...others].sort(() => Math.random() - .5), t: 480 };
+  $("mission-task").innerText = m.t;
+  $("mission-opts").innerHTML = mission.opts.map((k, i) => `<button class="mopt" data-i="${i}">${icon(k, m.type)}<span>${i + 1}</span></button>`).join("");
+  $("mission-card").style.display = "block";
+}
+function endMission() { mission = null; $("mission-card").style.display = "none"; }
+function answerMission(i) {
+  if (!mission || i < 0 || i > 2) return;
+  if (mission.opts[i] === mission.m.k) { P.gauge = Math.min(100, P.gauge + 50); showToast("ถูกต้อง! N2O +50% ⚡", "#4ade80"); }
+  else showToast("ผิด! ลองกล่องหน้าใหม่ 💥", "#ef4444");
+  endMission();
+}
+function tickMission() {
+  if (!mission) return;
+  $("mission-bar").style.width = (--mission.t / 480 * 100) + "%";
+  if (mission.t <= 0) { showToast("หมดเวลา! ⏱", "#f59e0b"); endMission(); }
+}
+$("mission-opts").addEventListener("pointerdown", e => { const b = e.target.closest(".mopt"); if (b) { e.preventDefault(); answerMission(+b.dataset.i); } });
+function drawRank() {
+  const L = [{ n: "คุณ", s: P.lap * N + P.idx, me: 1 }, ...ais.map(a => ({ n: a.name, s: a.s }))].sort((a, b) => b.s - a.s);
+  $("rank-list").innerHTML = L.map((r, i) => `<div class="rk${r.me ? " me" : ""}"><b>${i + 1}</b>${r.n}</div>`).join("");
+}
+const mm = $("minimap").getContext("2d");
+let mnx = 1e9, mnz = 1e9, mxx = -1e9, mxz = -1e9;
+pts.forEach(p => { mnx = Math.min(mnx, p.x); mxx = Math.max(mxx, p.x); mnz = Math.min(mnz, p.z); mxz = Math.max(mxz, p.z); });
+const msc = 100 / Math.max(mxx - mnx, mxz - mnz), mp = (x, z) => [10 + (x - mnx) * msc, 10 + (z - mnz) * msc];
+function drawMap() {
+  mm.clearRect(0, 0, 120, 120); mm.beginPath();
+  pts.forEach((p, i) => { const [x, z] = mp(p.x, p.z); i ? mm.lineTo(x, z) : mm.moveTo(x, z); });
+  mm.closePath(); mm.strokeStyle = "rgba(255,255,255,.85)"; mm.lineWidth = 4; mm.stroke();
+  const dot = (x, z, c, r) => { const [a, b] = mp(x, z); mm.fillStyle = c; mm.beginPath(); mm.arc(a, b, r, 0, 7); mm.fill(); };
+  dot(pts[GI].x, pts[GI].z, "#4ade80", 5);
+  ais.forEach(a => { const A = pts[mod(Math.floor(a.s))]; dot(A.x, A.z, "#94a3b8", 3); });
+  dot(P.x, P.z, "#facc15", 4.5);
+}
 
-        // เบาะนั่ง
-        const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 1.0), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-        saddle.position.set(0, 2.3, 0.6);
-        vehicleGroup.add(saddle);
+function completeStage() {
+  isCleared = true;
+  try {
+    const saved = localStorage.getItem("word_kart_save");
+    let p = saved ? JSON.parse(saved) : { coins: 0, stage: 1 };
+    p.coins = (p.coins || 0) + coinScore + 100;
+    if (p.stage <= stageId && stageId < 12) p.stage = stageId + 1;
+    localStorage.setItem("word_kart_save", JSON.stringify(p));
+  } catch (e) {}
+  $("victory-modal").style.display = "flex";
+}
+function goNext() { location.href = "index.html"; }
 
-        // แฮนด์จับ
-        const handle = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.15, 0.18), metalMat);
-        handle.position.set(0, 2.2, -1.2);
-        vehicleGroup.add(handle);
+function animate() {
+  requestAnimationFrame(animate);
+  update();
+  items.forEach((it, i) => { if (!it.hit) { it.m.rotation.y += .04; it.m.position.y = 2 + Math.sin(frame * .06 + i) * .3; } });
+  renderer.render(scene, camera);
+}
 
-        // ล้อหน้า-ล้อหลังพร้อมซี่ลวด
-        const wGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.22, 16);
-        const w1 = new THREE.Mesh(wGeo, wheelMat);
-        w1.rotation.z = Math.PI / 2;
-        w1.position.set(0, 0.9, -1.4);
-        vehicleGroup.add(w1);
-        wheelMeshes.push(w1);
-
-        const w2 = w1.clone();
-        w2.position.set(0, 0.9, 1.4);
-        vehicleGroup.add(w2);
-        wheelMeshes.push(w2);
-
-      } else {
-        // โมเดลรถแข่งโกคาร์ต (KartRider Style Super Kart)
-        const bodyColor = stageId > 5 ? 0xfacc15 : (stageId >= 3 ? 0xef4444 : 0x0284c7);
-        const bodyMat = new THREE.MeshLambertMaterial({ color: bodyColor });
-        const darkMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-        const rimMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-
-        // 1. กันชนหน้าทรงสปอร์ต (Front Bumper)
-        const bumper = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.45, 1.6), bodyMat);
-        bumper.position.set(0, 0.45, -2.4);
-        bumper.castShadow = true;
-        vehicleGroup.add(bumper);
-
-        // 2. ตัวถังหลัก (Chassis)
-        const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.65, 3.8), bodyMat);
-        chassis.position.set(0, 0.65, 0);
-        chassis.castShadow = true;
-        vehicleGroup.add(chassis);
-
-        // 3. ฝาครอบเครื่องยนต์ & สปอยเลอร์หลัง (Rear Wing)
-        const rearPod = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.8, 1.5), bodyMat);
-        rearPod.position.set(0, 1.0, 1.8);
-        vehicleGroup.add(rearPod);
-
-        const wing = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.2, 0.8), darkMat);
-        wing.position.set(0, 1.6, 2.2);
-        vehicleGroup.add(wing);
-
-        // 4. เบาะนั่งคนขับ & พวงมาลัย (Cockpit)
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 0.4), darkMat);
-        seat.position.set(0, 1.1, 0.8);
-        vehicleGroup.add(seat);
-
-        const wheelColumn = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.9), darkMat);
-        wheelColumn.rotation.x = -Math.PI / 4;
-        wheelColumn.position.set(0, 0.9, -0.6);
-        vehicleGroup.add(wheelColumn);
-
-        const steering = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.06, 8, 16), darkMat);
-        steering.rotation.x = Math.PI / 3;
-        steering.position.set(0, 1.25, -0.9);
-        vehicleGroup.add(steering);
-
-        // 5. ล้อโกคาร์ต 4 ล้อ (Kart Wheels + White Rims)
-        const wheelPositions = [
-          [-1.85, 0.6, -1.6],
-          [1.85, 0.6, -1.6],
-          [-1.85, 0.6, 1.6],
-          [1.85, 0.6, 1.6]
-        ];
-
-        wheelPositions.forEach(pos => {
-          const wGroup = new THREE.Group();
-          const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.65, 16), darkMat);
-          tire.rotation.z = Math.PI / 2;
-          tire.castShadow = true;
-          wGroup.add(tire);
-
-          const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.68, 12), rimMat);
-          rim.rotation.z = Math.PI / 2;
-          wGroup.add(rim);
-
-          wGroup.position.set(...pos);
-          vehicleGroup.add(wGroup);
-          wheelMeshes.push(wGroup);
-        });
-
-        // เงาดำใต้ท้องรถ (Fake Soft Shadow)
-        const shadowPlane = new THREE.Mesh(
-          new THREE.PlaneGeometry(4.2, 5.8),
-          new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
-        );
-        shadowPlane.rotation.x = -Math.PI / 2;
-        shadowPlane.position.y = 0.06;
-        vehicleGroup.add(shadowPlane);
-      }
-
-      scene.add(vehicleGroup);
-    }
-
-    /* 3. ป้ายภารกิจโฮโลแกรมนีออน 3D (Holographic Quest Signs) */
-    function createProSign(text, ok) {
-      const group = new THREE.Group();
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 512; canvas.height = 256;
-      const ctx = canvas.getContext("2d");
-
-      // พื้นหลังป้ายแบบนีออนโกลว์
-      ctx.fillStyle = ok ? "#059669" : "#dc2626";
-      ctx.roundRect(10, 10, 492, 236, 30);
-      ctx.fill();
-
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 14;
-      ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "900 64px Kanit, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, 256, 128);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      const signMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-      const board = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 3.6), signMat);
-      board.position.y = 2.4;
-      group.add(board);
-
-      // โครงขาตั้งป้ายโครงเหล็ก (Truss Stand)
-      const poleGeo = new THREE.CylinderGeometry(0.12, 0.12, 2.5);
-      const poleMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
-      const p1 = new THREE.Mesh(poleGeo, poleMat);
-      p1.position.set(-3.0, 1.25, 0);
-      group.add(p1);
-
-      const p2 = p1.clone();
-      p2.position.x = 3.0;
-      group.add(p2);
-
-      return group;
-    }
-
-    function buildItems() {
-      // 1. เหรียญทอง 3D หมุนได้รอบตัว
-      for (let z = -40; z > -420; z -= 28) {
-        const lane = [-8.5, 0, 8.5][Math.floor(Math.random() * 3)];
-        const coinMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-        const coin = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.28, 16), coinMat);
-        coin.rotation.x = Math.PI / 2;
-        coin.position.set(lane, 1.3, z);
-        scene.add(coin);
-        coins.push({ mesh: coin, x: lane, z: z, hit: false });
-      }
-
-      // 2. ป้ายภารกิจ 3 ป้ายตั้งอยู่ที่ระยะ -460 เมตร
-      cur.cards.forEach(c => {
-        const signGroup = createProSign(c.text, c.ok);
-        signGroup.position.set(c.lane, 0, -460);
-        scene.add(signGroup);
-        signs.push({ group: signGroup, x: c.lane, z: -460, ok: c.ok, hit: false });
-      });
-    }
-
-    function setupInputs() {
-      window.addEventListener("keydown", e => {
-        const k = e.key.toLowerCase();
-        if (k === "arrowup" || k === "w") keys.up = true;
-        if (k === "arrowdown" || k === "s") keys.down = true;
-        if (k === "arrowleft" || k === "a") keys.left = true;
-        if (k === "arrowright" || k === "d") keys.right = true;
-      });
-      window.addEventListener("keyup", e => {
-        const k = e.key.toLowerCase();
-        if (k === "arrowup" || k === "w") keys.up = false;
-        if (k === "arrowdown" || k === "s") keys.down = false;
-        if (k === "arrowleft" || k === "a") keys.left = false;
-        if (k === "arrowright" || k === "d") keys.right = false;
-      });
-
-      const bind = (id, act) => {
-        const el = document.getElementById(id);
-        el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[act] = true; });
-        el.addEventListener("touchend", () => keys[act] = false);
-      };
-      bind("btn-up", "up"); bind("btn-down", "down"); bind("btn-left", "left"); bind("btn-right", "right");
-    }
-
-    function showToast(text, color) {
-      const t = document.getElementById("toast-msg");
-      t.innerText = text; t.style.color = color; t.style.opacity = "1";
-      setTimeout(() => { t.style.opacity = "0"; }, 750);
-    }
-
-    function update() {
-      if (isCleared) return;
-
-      // ไนโตรบูสต์เทอร์โบ
-      let curMax = physics.baseMax;
-      if (physics.boostTimer > 0) {
-        physics.boostTimer--;
-        curMax *= 1.48;
-        document.getElementById("nitro-alert").style.display = "block";
-      } else {
-        document.getElementById("nitro-alert").style.display = "none";
-      }
-
-      if (keys.up) physics.speed += physics.accel;
-      else if (keys.down) physics.speed -= physics.accel * 1.5;
-      else {
-        if (physics.speed > 0) physics.speed = Math.max(0, physics.speed - physics.friction);
-        if (physics.speed < 0) physics.speed = Math.min(0, physics.speed + physics.friction);
-      }
-      physics.speed = Math.max(-0.35, Math.min(physics.speed, curMax));
-
-      if (physics.speed !== 0) {
-        const dir = physics.speed > 0 ? 1 : -1;
-        if (keys.left) physics.angle += physics.turnSpeed * dir;
-        if (keys.right) physics.angle -= physics.turnSpeed * dir;
-      }
-
-      physics.x -= Math.sin(physics.angle) * physics.speed;
-      physics.z -= Math.cos(physics.angle) * physics.speed;
-      physics.x = Math.max(-14, Math.min(14, physics.x));
-
-      // ล้อหมุนตามความเร็วรถ (Wheel Rotation Animation)
-      wheelMeshes.forEach(w => {
-        w.rotation.x += physics.speed * 1.5;
-      });
-
-      // 1. ชนเก็บเหรียญ
-      coins.forEach(c => {
-        if (!c.hit && Math.hypot(physics.x - c.x, physics.z - c.z) < 2.5) {
-          c.hit = true;
-          scene.remove(c.mesh);
-          coinScore += 10;
-          document.getElementById("stat-coins").innerText = coinScore;
-        }
-      });
-
-      // 2. พุ่งชนป้ายภารกิจ
-      signs.forEach(s => {
-        if (!s.hit && Math.hypot(physics.x - s.x, physics.z - s.z) < 3.2) {
-          s.hit = true;
-          scene.remove(s.group);
-
-          if (s.ok) {
-            physics.boostTimer = 85;
-            showToast("PERFECT HIT! ⚡ NITRO BOOST", "#4ade80");
-            setTimeout(completeStage, 950);
-          } else {
-            showToast("WRONG TARGET! 💥", "#ef4444");
-            physics.speed *= 0.35;
-          }
-        }
-      });
-
-      // ตัวรถเอียงตามการเลี้ยว (Kart Steering Lean)
-      vehicleGroup.position.set(physics.x, 0, physics.z);
-      vehicleGroup.rotation.y = physics.angle;
-      vehicleGroup.rotation.z = (keys.left ? 0.08 : (keys.right ? -0.08 : 0));
-
-      // กล้องติดตามท้ายรถอย่างนุ่มนวล
-      camera.position.set(physics.x * 0.85, 4.8, physics.z + 11.5);
-      camera.lookAt(physics.x, 1.4, physics.z - 8.0);
-
-      document.getElementById("speed-val").innerText = Math.round(Math.abs(physics.speed) * 68);
-    }
-
-    function completeStage() {
-      isCleared = true;
-      try {
-        const saved = localStorage.getItem("word_kart_save");
-        let p = saved ? JSON.parse(saved) : { coins: 0, stage: 1 };
-        p.coins = (p.coins || 0) + coinScore + 100;
-        if (p.stage <= stageId && stageId < 12) p.stage = stageId + 1;
-        localStorage.setItem("word_kart_save", JSON.stringify(p));
-      } catch(e){}
-
-      document.getElementById("victory-modal").style.display = "flex";
-    }
-
-    function goNext() {
-      window.location.href = `index.html`;
-    }
-
-    function animate() {
-      requestAnimationFrame(animate);
-      update();
-      coins.forEach(c => { if (!c.hit) c.mesh.rotation.z += 0.05; });
-      renderer.render(scene, camera);
-    }
-
-    window.addEventListener("DOMContentLoaded", init);
-  </script>
+const fontWait = document.fonts ? Promise.race([document.fonts.load("900 64px Kanit", "Ctrl"), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
+fontWait.then(init, init);
+</script>
 </body>
 </html>
