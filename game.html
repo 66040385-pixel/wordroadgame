@@ -59,15 +59,13 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#60a5fa;position:f
 #b-task{font-weight:900;font-size:1.3rem;margin:8px 0 14px}
 #b-workarea{background:#ffffff;border-radius:18px;padding:16px;color:#0f172a;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .word-ribbon-bar{display:flex;gap:8px;justify-content:center;margin-bottom:12px;border-bottom:2px dashed #cbd5e1;padding-bottom:10px}
-.tool-btn{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:6px 14px;font:900 1.1rem 'Chakra Petch';color:#1e293b;cursor:pointer}
+.tool-btn{background:#f1f5f9;border:2px solid #cbd5e1;border-radius:10px;padding:8px 16px;font:900 1.05rem 'Chakra Petch';color:#1e293b;cursor:pointer}
 .tool-btn:active{transform:scale(.95)}
 .tool-btn.active{background:#38bdf8;border-color:#0284c7;color:#fff}
-.doc-sheet{background:#f8fafc;border:2px solid #94a3b8;border-radius:12px;padding:14px;min-height:70px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700}
-#b-opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.mopt{position:relative;width:82px;height:72px;border-radius:16px;border:3px solid #38bdf8;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.mopt:active{background:#bae6fd}
-.mopt span{position:absolute;top:-9px;left:-9px;background:#38bdf8;color:#fff;border-radius:50%;width:22px;height:22px;font:900 .8rem 'Chakra Petch';display:flex;align-items:center;justify-content:center}
-.mopt.t{width:auto;min-width:130px;padding:0 16px;font:900 1.1rem 'Chakra Petch'}
+.doc-sheet{background:#f8fafc;border:2px solid #94a3b8;border-radius:12px;padding:14px;min-height:75px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700}
+.table-grid-box{display:grid;grid-template-columns:repeat(4,36px);grid-template-rows:repeat(3,36px);gap:6px;justify-content:center;margin:10px 0}
+.tbl-cell{background:#e2e8f0;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer}
+.tbl-cell.sel{background:#38bdf8;border-color:#0284c7}
 #b-know{display:none;background:#fef9c3;color:#422006;border-radius:16px;padding:12px 14px;text-align:left;margin-top:10px;border:3px dashed #f59e0b}
 #b-know h4{font:900 1.1rem 'Kanit';margin-bottom:4px}
 #b-know p{font-weight:500;line-height:1.5}
@@ -135,7 +133,6 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#60a5fa;position:f
   <div id="b-step"></div>
   <div id="b-task"></div>
   <div id="b-workarea"></div>
-  <div id="b-opts"></div>
   <div id="b-know"><h4>📘 ใบความรู้จุดสังเกต</h4><p id="b-know-text"></p><button class="b-btn" id="b-retry">ลองทำใหม่ (Enter)</button></div>
   <div id="b-wait"></div>
   <button class="b-btn" id="b-go" style="display:none">เริ่มแข่งต่อทันที! (Enter)</button>
@@ -196,7 +193,7 @@ let isCountingDown = true, countdownTimer = 3;
 
 const fmt = t => { const ms = Math.round(t * 1000); return String(Math.floor(ms / 60000)).padStart(2, "0") + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0") + "." + String(ms % 1000).padStart(3, "0"); };
 
-// ปรับให้ AI ช้าลงอย่างเห็นได้ชัด (ความเร็วอยู่ที่ 52% - 64% ของผู้เล่น)
+// ปรับความเร็ว AI ให้อยู่ระดับ 52% - 64% ของผู้เล่น ขับแซงได้ง่าย
 const RATIO = [0.64, 0.58, 0.60, 0.55, 0.52], SKILL = [.85, .7, .6, .8, .45];
 const SPH = new THREE.SphereGeometry(1, 14, 10);
 const mk = (g, geo, c, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, em) => { const m = new THREE.Mesh(geo, toon(c, em ? { emissive: em } : undefined)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
@@ -589,7 +586,6 @@ function setupInputs() {
   addEventListener("keydown", e => {
     getAudioContext();
     if (map[e.code]) { keys[map[e.code]] = true; e.preventDefault(); }
-    const dm = /^(Digit|Numpad)([1-3])$/.exec(e.code); if (dm) answerBonus(+dm[2] - 1);
     if (e.code === "Enter") bonusEnter();
     if (n2o.includes(e.code)) { e.preventDefault(); if (!e.repeat) useN2O(); }
   });
@@ -746,51 +742,77 @@ function showResult() {
   $("victory-modal").style.display = "flex";
 }
 
-/* ---------- หลากหลายภารกิจโต้ตอบ (INTERACTIVE WORD MISSIONS) ---------- */
+/* ---------- คลังภารกิจ 4 สไตล์ใหม่ (ตัดข้อ 1 ออกทั้งหมด) ---------- */
 const shuf = a => a.slice().sort(() => Math.random() - .5);
 
 const INTERACTIVE_MISSIONS = [
+  // สไตล์ที่ 2: ตรวจคำผิดเส้นหยักสีแดง
+  {
+    mode: "action_spellcheck",
+    q: "แตะที่คำที่มีเส้นหยักสีแดง เพื่อแก้ไขคำสะกดผิดให้ถูกต้อง",
+    wrongWord: "ไมโครชอฟต์",
+    correctWord: "ไมโครซอฟต์",
+    know: "เส้นหยักสีแดงใต้คำแปลว่าสะกดผิด ให้คลิกขวาเพื่อเลือกคำสะกดที่ถูกต้องในพจนานุกรม"
+  },
+  {
+    mode: "action_spellcheck",
+    q: "แตะที่คำสะกดผิด เพื่อแก้ชื่อโปรแกรมประมวลผลคำให้ถูกต้อง",
+    wrongWord: "เวิด",
+    correctWord: "เวิร์ด",
+    know: "การสะกดคำทับศัพท์ภาษาอังกฤษ Microsoft Word ในภาษาไทยต้องมีไม้ทัณฑฆาตกำกับ"
+  },
+
+  // สไตล์ที่ 3: แทรกและจัดตัดรูปภาพ Wrap Text
+  {
+    mode: "action_wraptext",
+    q: "เลือกคำสั่ง Wrap Text เพื่อส่งรูปภาพไปอยู่ 'ข้างหลังข้อความ (Behind Text)'",
+    target: "Behind Text",
+    opts: ["In Front of Text", "Behind Text", "Square"],
+    know: "Behind Text ส่งรูปภาพลงไปเป็นฉากหลัง ทำให้พิมพ์ข้อความลอยทับบนภาพได้"
+  },
+  {
+    mode: "action_wraptext",
+    q: "เลือกคำสั่ง Wrap Text เพื่อให้ข้อความ 'ล้อมรอบรูปภาพเป็นสี่เหลี่ยม (Square)'",
+    target: "Square",
+    opts: ["Square", "In Line with Text", "Behind Text"],
+    know: "Square ทำให้ข้อความไหลล้อมรอบกรอบรูปภาพเป็นทรงสี่เหลี่ยมอย่างมีระเบียบ"
+  },
+
+  // สไตล์ที่ 4: ลากสร้างขนาดตารางข้อมูล (Table Grid Picker)
+  {
+    mode: "action_table",
+    q: "แตะช่องตารางเพื่อกำหนดขนาด '3 คอลัมน์ x 2 แถว'",
+    targetCols: 3,
+    targetRows: 2,
+    know: "คอลัมน์คือนับตามแนวตั้ง (3 ช่อง) และแถวคือนับตามแนวนอน (2 ช่อง)"
+  },
+  {
+    mode: "action_table",
+    q: "แตะช่องตารางเพื่อกำหนดขนาด '2 คอลัมน์ x 3 แถว'",
+    targetCols: 2,
+    targetRows: 3,
+    know: "ตารางขนาด 2 x 3 จะมี 2 คอลัมน์แนวตั้ง และ 3 แถวแนวนอน"
+  },
+
+  // สไตล์ที่ 5: สลับแท็บเมนู Ribbon และจัดรูปแบบข้อความ
+  {
+    mode: "action_ribbon",
+    q: "หากต้องการ 'แทรกรูปภาพ ตาราง หรือรูปร่าง' ต้องเปิดแท็บ Ribbon ใด?",
+    target: "Insert",
+    opts: ["Home (หน้าแรก)", "Insert (แทรก)", "Layout (เค้าโครง)", "View (มุมมอง)"],
+    know: "แท็บ Insert (แทรก) เป็นศูนย์รวมคำสั่งใส่วัตถุภายนอก เช่น ตาราง รูปภาพ และแผนภูมิ"
+  },
   {
     mode: "action_style",
-    q: "แปลงข้อความให้เป็น 'ตัวหนา (Bold)' โดยคลิกที่เครื่องมือที่ถูกต้อง",
+    q: "คลิกปุ่มสไตล์ข้อความ เพื่อแปลงหัวข้อให้เป็น 'ตัวหนา (Bold)'",
     target: "B",
-    know: "ปุ่ม B (Bold) ใช้สำหรับทำตัวอักษรหนาเน้นข้อความสำคัญ หรือกดคีย์ลัด Ctrl + B"
-  },
-  {
-    mode: "action_style",
-    q: "แปลงข้อความให้เป็น 'ตัวเอียง (Italic)' เพื่อเน้นคำศัพท์เฉพาะ",
-    target: "I",
-    know: "ปุ่ม I (Italic) ใช้สำหรับทำตัวอักษรเอียง หรือกดคีย์ลัด Ctrl + I"
-  },
-  {
-    mode: "action_style",
-    q: "ใส่ 'เส้นใต้ (Underline)' ให้กับข้อความตัวอย่าง",
-    target: "U",
-    know: "ปุ่ม U (Underline) ใช้ขีดเส้นใต้ข้อความ หรือกดคีย์ลัด Ctrl + U"
+    know: "ปุ่ม B (Bold) ใช้เน้นคำสำคัญให้หนาเด่นชัด หรือกดคีย์ลัด Ctrl + B"
   },
   {
     mode: "action_align",
-    q: "จัดตำแหน่งข้อความให้อยู่ 'กึ่งกลางหน้ากระดาษ (Center)'",
+    q: "จัดวางหัวข้อเอกสารให้อยู่ 'กึ่งกลางหน้ากระดาษ (Center)'",
     target: "center",
-    know: "การจัดกึ่งกลาง (Center) นิยมใช้กับชื่อเรื่องหน้ากระดาษ หรือกดคีย์ลัด Ctrl + E"
-  },
-  {
-    mode: "action_align",
-    q: "จัดตำแหน่งข้อความให้ 'ชิดขอบขวา (Align Right)'",
-    target: "right",
-    know: "การชิดขวา (Align Right) ใช้กับวันที่หรือลายเซ็นท้ายเอกสาร หรือกดคีย์ลัด Ctrl + R"
-  },
-  {
-    mode: "standard_quiz",
-    q: "คีย์ลัดใดใช้สั่ง 'บันทึกเอกสารด่วน (Save)' ทันที",
-    opts: [{ txt: "Ctrl + S", ok: true }, { txt: "Ctrl + C", ok: false }, { txt: "Ctrl + V", ok: false }],
-    know: "Ctrl + S ย่อมาจาก Save ใช้สำหรับบันทึกงานป้องกันข้อมูลสูญหาย"
-  },
-  {
-    mode: "standard_quiz",
-    q: "ต้องการกู้คืนข้อความที่เผลอกดลบผิดพลาด (Undo) ต้องกดคีย์ลัดใด",
-    opts: [{ txt: "Ctrl + Z", ok: true }, { txt: "Ctrl + Y", ok: false }, { txt: "Ctrl + A", ok: false }],
-    know: "Ctrl + Z คือคำสั่ง Undo ใช้สำหรับย้อนกลับการกระทำล่าสุด"
+    know: "ปุ่ม Center จัดกึ่งกลางหน้ากระดาษ นิยมใช้กับชื่อเรื่องรายงาน หรือกดคีย์ลัด Ctrl + E"
   }
 ];
 
@@ -828,11 +850,10 @@ function renderBonusUI() {
   const b = bonus, m = b.m, st = b.state;
   const show = (id, on, d = "block") => $(id).style.display = on ? d : "none";
   
-  $("b-step").innerText = `ภารกิจจบรับรอบที่ ${P.lap} / ${TOTAL_LAPS}`;
+  $("b-step").innerText = `ภารกิจรอบที่ ${P.lap} / ${TOTAL_LAPS}`;
   $("b-task").innerText = m.q;
   
-  show("b-workarea", st === "play" && m.mode.startsWith("action_"));
-  show("b-opts", st === "play" && m.mode === "standard_quiz", "flex");
+  show("b-workarea", st === "play");
   show("b-know", st === "know");
   show("b-wait", st === "done");
   show("b-go", st === "done", "inline-block");
@@ -841,7 +862,45 @@ function renderBonusUI() {
   work.innerHTML = "";
 
   if (st === "play") {
-    if (m.mode === "action_style") {
+    // 2. ภารกิจตรวจคำผิด
+    if (m.mode === "action_spellcheck") {
+      work.innerHTML = `
+        <div style="font-size:0.95rem; color:#64748b; margin-bottom:8px;">แตะที่คำที่มีเส้นหยักสีแดงเพื่อแก้ไข:</div>
+        <div class="doc-sheet">
+          โปรแกรม&nbsp;<span id="spell-target" style="text-decoration:underline wavy #ef4444; color:#ef4444; cursor:pointer; font-weight:900;" onclick="fixSpelling()">${m.wrongWord}</span>&nbsp;Word 3D
+        </div>
+      `;
+    }
+    // 3. ภารกิจ Wrap Text
+    else if (m.mode === "action_wraptext") {
+      work.innerHTML = `
+        <div style="font-size:0.95rem; color:#64748b; margin-bottom:12px;">เลือกรูปแบบการตัดข้อความรอบรูปภาพ:</div>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          ${m.opts.map(o => `<button class="tool-btn" onclick="checkWrapOption('${o}', '${m.target}')">${o}</button>`).join("")}
+        </div>
+      `;
+    }
+    // 4. ภารกิจกำหนดขนาดตาราง (Table Grid Picker)
+    else if (m.mode === "action_table") {
+      let gridHtml = '<div style="font-size:0.95rem; color:#64748b;">แตะเลือกช่องเพื่อกำหนดขนาดตาราง:</div><div class="table-grid-box" id="tbl-grid">';
+      for(let r=1; r<=3; r++){
+        for(let c=1; c<=4; c++){
+          gridHtml += `<div class="tbl-cell" data-r="${r}" data-c="${c}" onclick="selectTableSize(${c}, ${r})"></div>`;
+        }
+      }
+      gridHtml += '</div><div id="tbl-status" style="font-size:0.9rem; font-weight:800; color:#0284c7;">เลือก: 1 x 1</div>';
+      work.innerHTML = gridHtml;
+    }
+    // 5. ภารกิจเลือกแท็บ Ribbon
+    else if (m.mode === "action_ribbon") {
+      work.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          ${m.opts.map(t => `<button class="tool-btn" style="padding:14px; font-size:1.05rem;" onclick="checkRibbonTab('${t}', '${m.target}')">${t}</button>`).join("")}
+        </div>
+      `;
+    }
+    // ภารกิจตกแต่งฟอนต์
+    else if (m.mode === "action_style") {
       work.innerHTML = `
         <div class="word-ribbon-bar">
           <button class="tool-btn" onclick="applyInteractiveStyle('B')"><b>B</b></button>
@@ -850,7 +909,9 @@ function renderBonusUI() {
         </div>
         <div class="doc-sheet" id="sample-text">เอกสารรายงาน Microsoft Word</div>
       `;
-    } else if (m.mode === "action_align") {
+    }
+    // ภารกิจจัดแนวย่อหน้า
+    else if (m.mode === "action_align") {
       work.innerHTML = `
         <div class="word-ribbon-bar">
           <button class="tool-btn" onclick="applyInteractiveAlign('left')">ชิดซ้าย</button>
@@ -859,10 +920,6 @@ function renderBonusUI() {
         </div>
         <div class="doc-sheet" id="sample-text" style="text-align:left; display:block;">หัวข้อรายงาน ม.1</div>
       `;
-    } else if (m.mode === "standard_quiz") {
-      $("b-opts").innerHTML = m.opts.map((o, i) => `
-        <button class="mopt t" onclick="submitStandardAnswer(${o.ok})">${o.txt}<span>${i + 1}</span></button>
-      `).join("");
     }
   }
 
@@ -871,7 +928,51 @@ function renderBonusUI() {
   }
 
   if (st === "done") {
-    $("b-wait").innerHTML = "🎉 ภารกิจสำเร็จ! ได้รับ N2O ไนโตรบูสต์เต็มหลอด ⚡<br>กดปุ่มด้านล่างเพื่อออกตัวลุยรอบต่อไปพร้อมกันได้เลย!";
+    $("b-wait").innerHTML = "🎉 ภารกิจสำเร็จ! ได้รับ N2O ไนโตรบูสต์เต็มหลอด ⚡<br>กดปุ่มด้านล่างเพื่อออกตัวลุยรอบต่อไปพร้อมกัน!";
+  }
+}
+
+// ฟังก์ชันตรวจคำผิด
+function fixSpelling() {
+  const el = $("spell-target");
+  el.innerText = bonus.m.correctWord;
+  el.style.color = "#15803d";
+  el.style.textDecoration = "none";
+  setTimeout(handleBonusSuccess, 450);
+}
+
+// ฟังก์ชันตรวจ Wrap Text
+function checkWrapOption(selected, target) {
+  if (selected === target) {
+    handleBonusSuccess();
+  } else {
+    handleBonusFail();
+  }
+}
+
+// ฟังก์ชันเลือกขนาดตาราง
+function selectTableSize(cols, rows) {
+  document.querySelectorAll(".tbl-cell").forEach(cell => {
+    const c = parseInt(cell.dataset.c);
+    const r = parseInt(cell.dataset.r);
+    if (c <= cols && r <= rows) cell.classList.add("sel");
+    else cell.classList.remove("sel");
+  });
+  $("tbl-status").innerText = `เลือก: ${cols} คอลัมน์ x ${rows} แถว`;
+
+  if (cols === bonus.m.targetCols && rows === bonus.m.targetRows) {
+    setTimeout(handleBonusSuccess, 400);
+  } else {
+    setTimeout(handleBonusFail, 400);
+  }
+}
+
+// ฟังก์ชันตรวจแท็บ Ribbon
+function checkRibbonTab(selected, target) {
+  if (selected.includes(target)) {
+    handleBonusSuccess();
+  } else {
+    handleBonusFail();
   }
 }
 
@@ -898,14 +999,6 @@ function applyInteractiveAlign(align) {
   }
 }
 
-function submitStandardAnswer(isOk) {
-  if (isOk) {
-    handleBonusSuccess();
-  } else {
-    handleBonusFail();
-  }
-}
-
 function handleBonusSuccess() {
   bonus.ok = true;
   bonus.state = "done";
@@ -918,7 +1011,7 @@ function handleBonusFail() {
   renderBonusUI();
 }
 
-// นับเวลาถอยหลังอย่างต่อเนื่อง
+// นับเวลาถอยหลังต่อเนื่องจนถึง 0
 function tickBonus() {
   bonus.t--;
   const sec = Math.max(0, Math.ceil(bonus.t / 60));
