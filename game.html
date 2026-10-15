@@ -196,8 +196,8 @@ let isCountingDown = true, countdownTimer = 3;
 
 const fmt = t => { const ms = Math.round(t * 1000); return String(Math.floor(ms / 60000)).padStart(2, "0") + ":" + String(Math.floor(ms / 1000) % 60).padStart(2, "0") + "." + String(ms % 1000).padStart(3, "0"); };
 
-// ปรับความเร็ว AI ให้ช้าลงเพื่อความสนุก
-const RATIO = [0.82, 0.78, 0.80, 0.72, 0.68], SKILL = [.85, .7, .6, .8, .45];
+// ปรับให้ AI ช้าลงอย่างเห็นได้ชัด (ความเร็วอยู่ที่ 52% - 64% ของผู้เล่น)
+const RATIO = [0.64, 0.58, 0.60, 0.55, 0.52], SKILL = [.85, .7, .6, .8, .45];
 const SPH = new THREE.SphereGeometry(1, 14, 10);
 const mk = (g, geo, c, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1, em) => { const m = new THREE.Mesh(geo, toon(c, em ? { emissive: em } : undefined)); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; g.add(m); return m; };
 
@@ -249,7 +249,7 @@ function playBeepLow() {
     const gain = ctx.createGain();
     osc.type = "square";
     osc.frequency.setValueAtTime(440, ctx.currentTime);
-    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -266,7 +266,7 @@ function playBeepHigh() {
     osc.type = "square";
     osc.frequency.setValueAtTime(880, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.setValueAtTime(0.28, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -287,7 +287,7 @@ function playNitroSound() {
     osc.frequency.exponentialRampToValueAtTime(800, now + 0.35);
     osc.frequency.exponentialRampToValueAtTime(300, now + 1.2);
 
-    oscGain.gain.setValueAtTime(0.2, now);
+    oscGain.gain.setValueAtTime(0.22, now);
     oscGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
 
     const filter = ctx.createBiquadFilter();
@@ -315,7 +315,7 @@ function playNitroSound() {
     noiseFilter.frequency.setValueAtTime(1000, now);
 
     const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.15, now);
+    noiseGain.gain.setValueAtTime(0.16, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
     whiteNoise.connect(noiseFilter);
@@ -366,6 +366,7 @@ function init() {
   addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
   window.addEventListener("pointerdown", () => { getAudioContext(); }, { once: true });
+  window.addEventListener("keydown", () => { getAudioContext(); }, { once: true });
 
   startCountdown();
   animate();
@@ -801,6 +802,15 @@ function startBonus() {
   for (const k in keys) keys[k] = false;
   P.speed = 0; P.vx = 0; P.vz = 0;
   
+  // รีเซ็ตตำแหน่งรถ AI ทุกคันให้มาเข้าแถวรอบเส้นสตาร์ตพร้อมผู้เล่น
+  const currentLapBase = P.lap * N;
+  const offsets = [-8, 8, -14, 14, -20];
+  ais.forEach((a, i) => {
+    a.s = currentLapBase + offsets[i];
+    a.sp = P.baseMax * RATIO[i];
+    a.bt = 0;
+  });
+
   bonus = {
     m: buildCurrentLapMission(),
     t: BONUS_SEC * 60,
@@ -861,7 +871,7 @@ function renderBonusUI() {
   }
 
   if (st === "done") {
-    $("b-wait").innerHTML = "🎉 ภารกิจสำเร็จ! ได้รับ N2O ไนโตรบูสต์เต็มหลอด ⚡<br>กดปุ่มด้านล่างเพื่อออกตัวลุยรอบต่อไปได้เลย!";
+    $("b-wait").innerHTML = "🎉 ภารกิจสำเร็จ! ได้รับ N2O ไนโตรบูสต์เต็มหลอด ⚡<br>กดปุ่มด้านล่างเพื่อออกตัวลุยรอบต่อไปพร้อมกันได้เลย!";
   }
 }
 
@@ -908,7 +918,7 @@ function handleBonusFail() {
   renderBonusUI();
 }
 
-// นับเวลาถอยหลังอย่างต่อเนื่องจนครบ 0 หรือจนกว่าผู้เล่นจะกดออกตัว
+// นับเวลาถอยหลังอย่างต่อเนื่อง
 function tickBonus() {
   bonus.t--;
   const sec = Math.max(0, Math.ceil(bonus.t / 60));
@@ -928,7 +938,8 @@ function bonusEnter() {
   } else {
     bonus = null;
     $("bonus").style.display = "none";
-    showToast("GO NEXT LAP! 🚀", "#4ade80");
+    // ออกตัวพร้อมกัน
+    startCountdown();
   }
 }
 
